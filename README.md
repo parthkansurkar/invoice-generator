@@ -12,6 +12,8 @@ Imagine you're a freelancer or small business owner who needs to send invoices t
 * Keep track of all your invoices in one place
 
 # Features That Make Life Easier 🚀
+
+# Another Commment
   
 # 👤 User-Friendly Registration
 * Simple signup with email
