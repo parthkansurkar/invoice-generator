@@ -1,0 +1,16 @@
+we have to add all html files here 
+@tanishka create a interface for our project i will give all points
+
+templates (folder)
+    registration(folder)
+    login.html
+    register.html
+base.html
+dashboard.html
+document_choice.html
+invoice_form.html
+invoice_history.html
+landing.html
+preview.html
+profile_setup.html
+templates_selection.html
