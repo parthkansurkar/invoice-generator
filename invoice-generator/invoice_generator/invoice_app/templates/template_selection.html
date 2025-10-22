@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Template - InvoiceGen{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header">
+        <h2 class="card-title">Select a Template</h2>
+        <p>Choose from our collection of professional templates for your {{ document_type }}.</p>
+    </div>
+    
+    <div class="template-grid">
+        <div class="template-card" data-template-id="1">
+            <div class="template-preview">
+                Template 1
+            </div>
+            <div class="template-name">Modern Blue</div>
+        </div>
+        
+        <div class="template-card" data-template-id="2">
+            <div class="template-preview" style="background: linear-gradient(45deg, #f72585, #b5179e);">
+                Template 2
+            </div>
+            <div class="template-name">Elegant Pink</div>
+        </div>
+        
+        <div class="template-card" data-template-id="3">
+            <div class="template-preview" style="background: linear-gradient(45deg, #4cc9f0, #4895ef);">
+                Template 3
+            </div>
+            <div class="template-name">Professional Teal</div>
+        </div>
+        
+        <div class="template-card" data-template-id="4">
+            <div class="template-preview" style="background: linear-gradient(45deg, #f77f00, #d62828);">
+                Template 4
+            </div>
+            <div class="template-name">Warm Orange</div>
+        </div>
+        
+        <div class="template-card" data-template-id="5">
+            <div class="template-preview" style="background: linear-gradient(45deg, #2a9d8f, #264653);">
+                Template 5
+            </div>
+            <div class="template-name">Nature Green</div>
+        </div>
+        
+        <div class="template-card" data-template-id="6">
+            <div class="template-preview" style="background: linear-gradient(45deg, #7209b7, #3a0ca3);">
+                Template 6
+            </div>
+            <div class="template-name">Royal Purple</div>
+        </div>
+    </div>
+    
+    <form method="POST" action="{% url 'invoice_form' %}" style="margin-top: 2rem;">
+        {% csrf_token %}
+        <input type="hidden" name="document_type" value="{{ document_type }}">
+        <input type="hidden" id="selected-template" name="template_id" required>
+        <button type="submit" class="btn btn-primary">Continue with Selected Template</button>
+    </form>
+</div>
+{% endblock %}

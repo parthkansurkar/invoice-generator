@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Document Type - InvoiceGen{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header">
+        <h2 class="card-title">What would you like to create?</h2>
+        <p>Select the type of document you want to generate.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div class="card" style="cursor: pointer; text-align: center; padding: 2rem;" onclick="selectDocument('invoice')">
+            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <h3 style="margin-bottom: 1rem;">Invoice</h3>
+            <p>Create a professional invoice for your products or services.</p>
+        </div>
+        
+        <div class="card" style="cursor: pointer; text-align: center; padding: 2rem;" onclick="selectDocument('quotation')">
+            <div style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h3 style="margin-bottom: 1rem;">Quotation</h3>
+            <p>Generate a quotation to propose your services to potential clients.</p>
+        </div>
+    </div>
+</div>
+
+<form id="documentForm" method="POST" action="{% url 'template_selection' %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" id="documentType" name="document_type">
+</form>
+
+<script>
+    function selectDocument(type) {
+        document.getElementById('documentType').value = type;
+        document.getElementById('documentForm').submit();
+    }
+</script>
+{% endblock %}

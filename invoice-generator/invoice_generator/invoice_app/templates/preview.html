@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Preview {{ document_type|title }} - InvoiceGen{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header" style="display: flex; justify-content: between; align-items: center;">
+        <h2 class="card-title">Preview Your {{ document_type|title }}</h2>
+        <div>
+            <button class="btn btn-outline" onclick="toggleEditMode()" id="editToggle">
+                <i class="fas fa-edit"></i> Edit Text
+            </button>
+            <button class="btn btn-primary" onclick="downloadPDF()">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+        </div>
+    </div>
+    
+    <div id="preview-container" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <!-- This is where the invoice preview will be rendered -->
+        <div id="invoice-preview">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
+                <div>
+                    <h1 style="color: var(--primary); margin-bottom: 0.5rem;">{{ document_type|upper }}</h1>
+                    <p><strong>Invoice #:</strong> {{ invoice_data.invoice_number }}</p>
+                    <p><strong>Date:</strong> {{ invoice_data.date }}</p>
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="margin-bottom: 0.5rem;">{{ user_profile.company_name }}</h2>
+                    <p>{{ user_profile.address }}</p>
+                    <p>Phone: {{ user_profile.phone }}</p>
+                    <p>Email: {{ user.email }}</p>
+                    {% if user_profile.gst_number %}
+                    <p>GST: {{ user_profile.gst_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
+                <div>
+                    <h3>Bill To:</h3>
+                    <p><strong>{{ invoice_data.client_name }}</strong></p>
+                    <p>{{ invoice_data.client_address }}</p>
+                    <p>Phone: {{ invoice_data.client_phone }}</p>
+                    <p>Email: {{ invoice_data.client_email }}</p>
+                </div>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+                <thead>
+                    <tr style="background: var(--primary); color: white;">
+                        <th style="padding: 1rem; text-align: left;">Description</th>
+                        <th style="padding: 1rem; text-align: center;">Quantity</th>
+                        <th style="padding: 1rem; text-align: right;">Price</th>
+                        <th style="padding: 1rem; text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in invoice_data.items %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">{{ item.description }}</td>
+                        <td style="padding: 1rem; text-align: center;">{{ item.quantity }}</td>
+                        <td style="padding: 1rem; text-align: right;">${{ item.price }}</td>
+                        <td style="padding: 1rem; text-align: right;">${{ item.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div style="display: flex; justify-content: flex-end;">
+                <div style="width: 300px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Subtotal:</span>
+                        <span>${{ invoice_data.subtotal }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Tax ({{ invoice_data.tax_rate }}%):</span>
+                        <span>${{ invoice_data.tax_amount }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem; border-top: 1px solid #eee; padding-top: 0.5rem;">
+                        <span>Total:</span>
+                        <span>${{ invoice_data.total }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if invoice_data.notes %}
+            <div style="margin-top: 2rem;">
+                <h3>Notes:</h3>
+                <p>{{ invoice_data.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <button class="btn btn-primary" onclick="sendEmail()">
+            <i class="fas fa-paper-plane"></i> Send to Client
+        </button>
+        <a href="{% url 'invoice_form' %}?document_type={{ document_type }}&template_id={{ template_id }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Edit
+        </a>
+    </div>
+</div>
+
+<script>
+    let editMode = false;
+    
+    function toggleEditMode() {
+        editMode = !editMode;
+        const editToggle = document.getElementById('editToggle');
+        const previewContainer = document.getElementById('preview-container');
+        
+        if (editMode) {
+            editToggle.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            previewContainer.setAttribute('contenteditable', 'true');
+            previewContainer.style.border = '2px dashed var(--primary)';
+        } else {
+            editToggle.innerHTML = '<i class="fas fa-edit"></i> Edit Text';
+            previewContainer.removeAttribute('contenteditable');
+            previewContainer.style.border = 'none';
+            alert('Changes saved!');
+        }
+    }
+    
+    function downloadPDF() {
+        alert('PDF download would be initiated here. In a real application, this would generate a PDF file.');
+        // In a real application, this would call a backend endpoint to generate a PDF
+    }
+    
+    function sendEmail() {
+        alert('Email would be sent here. In a real application, this would send the invoice to the client.');
+        // In a real application, this would call a backend endpoint to send an email
+    }
+</script>
+{% endblock %}
+<!-- Add this to preview.html after the preview section -->
+<div style="margin-top: 2rem; display: flex; gap: 1rem;">
+    <form method="POST" action="{% url 'save_invoice' %}" style="display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="document_type" value="{{ document_type }}">
+        <input type="hidden" name="template_id" value="{{ template_id }}">
+        <!-- Add all other hidden fields with invoice data -->
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-save"></i> Save {{ document_type|title }}
+        </button>
+    </form>
+    
+    <button class="btn btn-primary" onclick="downloadPDF()">
+        <i class="fas fa-download"></i> Download PDF
+    </button>
+    
+    <button class="btn btn-primary" onclick="sendEmail()">
+        <i class="fas fa-paper-plane"></i> Send to Client
+    </button>
+    
+    <a href="{% url 'invoice_form' %}?document_type={{ document_type }}&template_id={{ template_id }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Edit
+    </a>
+</div>

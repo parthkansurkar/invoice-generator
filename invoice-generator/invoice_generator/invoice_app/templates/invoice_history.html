@@ -1,0 +1,46 @@
+<!-- Create invoice_history.html -->
+{% extends 'base.html' %}
+
+{% block title %}Invoice History - InvoiceGen{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header">
+        <h2 class="card-title">Your Invoice History</h2>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--primary);">
+                    <th style="padding: 1rem; text-align: left;">{{ document_type|title }} #</th>
+                    <th style="padding: 1rem; text-align: left;">Client</th>
+                    <th style="padding: 1rem; text-align: left;">Date</th>
+                    <th style="padding: 1rem; text-align: left;">Amount</th>
+                    <th style="padding: 1rem; text-align: left;">Type</th>
+                    <th style="padding: 1rem; text-align: left;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 1rem;">{{ invoice.invoice_number }}</td>
+                    <td style="padding: 1rem;">{{ invoice.client_name }}</td>
+                    <td style="padding: 1rem;">{{ invoice.date }}</td>
+                    <td style="padding: 1rem;">${{ invoice.total }}</td>
+                    <td style="padding: 1rem;">{{ invoice.document_type|title }}</td>
+                    <td style="padding: 1rem;">
+                        <a href="#" style="color: var(--primary); margin-right: 10px;">View</a>
+                        <a href="#" style="color: var(--warning);">Download</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 2rem; text-align: center;">No invoices found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
