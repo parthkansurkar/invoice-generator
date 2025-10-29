@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - BillKar बिलकर{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <h1 style="margin-bottom: 1rem;">
+        Welcome back, 
+        {% if user_profile.company_name %}
+            {{ user_profile.company_name }}!
+        {% else %}
+            {{ user.username }}!
+        {% endif %}
+    </h1>
+    
+    {% if not user_profile.company_name or not user_profile.phone %}
+    <div class="alert alert-error">
+        <strong>Profile Incomplete!</strong> 
+        <a href="{% url 'profile_setup' %}" style="color: #721c24; text-decoration: underline;">
+            Please complete your business profile to start creating invoices.
+        </a>
+    </div>
+    {% endif %}
+    
+    <p style="color: var(--gray); margin-bottom: 2rem;">Here's an overview of your invoice activity.</p>
+    
+    <div class="dashboard-cards">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div class="stat-number">{{ total_invoices }}</div>
+            <div class="stat-label">Total Invoices</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-number">{{ pending_invoices }}</div>
+            <div class="stat-label">Pending Invoices</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ paid_invoices }}</div>
+            <div class="stat-label">Paid Invoices</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-number">₹{{ total_revenue|floatformat:2 }}</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{% url 'document_choice' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Invoice
+            </a>
+            <a href="#" class="btn btn-outline">
+                <i class="fas fa-history"></i> View History
+            </a>
+            <a href="{% url 'profile_setup' %}" class="btn btn-outline">
+                <i class="fas fa-user-edit"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h2 class="card-title">Recent Invoices</h2>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 1rem; text-align: left;">Invoice #</th>
+                        <th style="padding: 1rem; text-align: left;">Client</th>
+                        <th style="padding: 1rem; text-align: left;">Date</th>
+                        <th style="padding: 1rem; text-align: left;">Amount</th>
+                        <th style="padding: 1rem; text-align: left;">Status</th>
+                        <th style="padding: 1rem; text-align: left;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">{{ invoice.invoice_number }}</td>
+                        <td style="padding: 1rem;">{{ invoice.client_name }}</td>
+                        <td style="padding: 1rem;">{{ invoice.date }}</td>
+                        <td style="padding: 1rem;">₹{{ invoice.total }}</td>
+                        <td style="padding: 1rem;"><span style="color: green;">Paid</span></td>
+                        <td style="padding: 1rem;">
+                            <a href="#" style="color: var(--primary); margin-right: 10px;">View</a>
+                            <a href="#" style="color: var(--warning);">Download</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray);">
+                            No invoices created yet. <a href="{% url 'document_choice' %}">Create your first invoice!</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

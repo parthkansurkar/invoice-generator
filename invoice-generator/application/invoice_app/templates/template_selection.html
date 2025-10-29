@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Template - BillKar बिलकर{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header">
+        <h2 class="card-title">Select a Template</h2>
+        <p>Choose from our collection of professional templates for your {{ document_type }}.</p>
+    </div>
+    
+    <div class="template-grid">
+        <div class="template-card" data-template-id="1">
+            <div class="template-preview" style="background: linear-gradient(45deg, #4361ee, #3a0ca3);">
+                Modern Blue
+            </div>
+            <div class="template-name">Modern Blue</div>
+        </div>
+        
+        <div class="template-card" data-template-id="2">
+            <div class="template-preview" style="background: linear-gradient(45deg, #2a9d8f, #264653);">
+                Professional Green
+            </div>
+            <div class="template-name">Professional Green</div>
+        </div>
+        
+        <div class="template-card" data-template-id="3">
+            <div class="template-preview" style="background: linear-gradient(45deg, #7209b7, #3a0ca3);">
+                Elegant Purple
+            </div>
+            <div class="template-name">Elegant Purple</div>
+        </div>
+        
+        <div class="template-card" data-template-id="4">
+            <div class="template-preview" style="background: linear-gradient(45deg, #f77f00, #d62828);">
+                Warm Orange
+            </div>
+            <div class="template-name">Warm Orange</div>
+        </div>
+        
+        <div class="template-card" data-template-id="5">
+            <div class="template-preview" style="background: linear-gradient(45deg, #495057, #212529);">
+                Corporate Gray
+            </div>
+            <div class="template-name">Corporate Gray</div>
+        </div>
+        
+        <div class="template-card" data-template-id="6">
+            <div class="template-preview" style="background: linear-gradient(45deg, #f72585, #b5179e);">
+                Creative Pink
+            </div>
+            <div class="template-name">Creative Pink</div>
+        </div>
+    </div>
+    
+    <form method="POST" action="{% url 'invoice_form' %}" style="margin-top: 2rem;">
+        {% csrf_token %}
+        <input type="hidden" name="document_type" value="{{ document_type }}">
+        <input type="hidden" id="selected-template" name="template_id" required>
+        <button type="submit" class="btn btn-primary">Continue with Selected Template</button>
+    </form>
+</div>
+{% endblock %}

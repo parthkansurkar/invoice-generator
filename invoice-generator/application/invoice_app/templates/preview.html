@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+
+{% block title %}Preview {{ document_type|title }} - BillKar बिलकर{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header preview-header">
+        <h2 class="card-title">Preview Your {{ document_type|title }}</h2>
+        <div>
+            <button class="btn btn-outline" id="editToggle">
+                <i class="fas fa-edit"></i> Edit Text
+            </button>
+            <button class="btn btn-success" id="saveButton" style="margin: 0 10px;">
+                <i class="fas fa-save"></i> Save
+            </button>
+            <button class="btn btn-primary" id="downloadButton">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+        </div>
+    </div>
+    
+    <div id="preview-container" class="preview-container">
+        <div class="watermark-preview">
+            BillKar <span class="hindi-text">बिलकर</span>
+        </div>
+        
+        <div id="invoice-preview" class="invoice-content">
+            <!-- Invoice Header -->
+            <div class="invoice-header">
+                <div class="invoice-left">
+                    <h1 class="invoice-title">{{ document_type|upper }}</h1>
+                    <p class="invoice-details"><strong>{{ document_type|title }} #:</strong> {{ invoice_data.invoice_number }}</p>
+                    <p class="invoice-details"><strong>Date:</strong> {{ invoice_data.date }}</p>
+                </div>
+                <div class="company-info">
+                    <h2 class="company-name">{{ user_profile.company_name }}</h2>
+                    <p class="invoice-details">{{ user_profile.address|linebreaksbr }}</p>
+                    <p class="invoice-details">Phone: {{ user_profile.phone }}</p>
+                    <p class="invoice-details">Email: {{ user.email }}</p>
+                    {% if user_profile.gst_number %}
+                    <p class="invoice-details">GST: {{ user_profile.gst_number }}</p>
+                    {% endif %}
+                    {% if user_profile.pan_number %}
+                    <p class="invoice-details">PAN: {{ user_profile.pan_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Bill To Section -->
+            <div class="bill-to-section">
+                <div>
+                    <h3 class="bill-to-title">Bill To:</h3>
+                    <p class="invoice-details client-name">{{ invoice_data.client_name }}</p>
+                    <p class="invoice-details">{{ invoice_data.client_address|linebreaksbr }}</p>
+                    {% if invoice_data.client_phone %}
+                    <p class="invoice-details">Phone: {{ invoice_data.client_phone }}</p>
+                    {% endif %}
+                    {% if invoice_data.client_email %}
+                    <p class="invoice-details">Email: {{ invoice_data.client_email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Items Table -->
+            <table class="invoice-table">
+                <thead>
+                    <tr class="table-header">
+                        <th>Description</th>
+                        <th class="text-center">Quantity</th>
+                        <th class="text-right">Price</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in invoice_data.items %}
+                    <tr class="table-row">
+                        <td>{{ item.description }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-right">{{ invoice_data.currency }}{{ item.price }}</td>
+                        <td class="text-right">{{ invoice_data.currency }}{{ item.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Totals Section -->
+            <div class="amounts-section">
+                <div class="amounts-container">
+                    <div class="amount-row">
+                        <span class="amount-label">Subtotal:</span>
+                        <span class="amount-value">{{ invoice_data.currency }}{{ invoice_data.subtotal }}</span>
+                    </div>
+                    <div class="amount-row">
+                        <span class="amount-label">Tax ({{ invoice_data.tax_rate }}%):</span>
+                        <span class="amount-value">{{ invoice_data.currency }}{{ invoice_data.tax_amount }}</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="total-label">TOTAL:</span>
+                        <span class="total-value">{{ invoice_data.currency }}{{ invoice_data.total }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notes Section -->
+            {% if invoice_data.notes %}
+            <div class="notes-section">
+                <h3 class="notes-title">Notes:</h3>
+                <p class="notes-content">{{ invoice_data.notes|linebreaksbr }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="invoice-footer">
+                <p>Generated by <strong>BillKar बिलकर</strong> - Professional Invoice Generator</p>
+                <p class="footer-thanks">Thank you for your business!</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <form method="POST" action="{% url 'save_invoice' %}" class="save-form">
+            {% csrf_token %}
+            <input type="hidden" name="document_type" value="{{ document_type }}">
+            <input type="hidden" name="template_id" value="{{ template_id }}">
+            <input type="hidden" name="invoice_number" value="{{ invoice_data.invoice_number }}">
+            <input type="hidden" name="date" value="{{ invoice_data.date }}">
+            <input type="hidden" name="client_name" value="{{ invoice_data.client_name }}">
+            <input type="hidden" name="client_email" value="{{ invoice_data.client_email }}">
+            <input type="hidden" name="client_phone" value="{{ invoice_data.client_phone }}">
+            <input type="hidden" name="client_address" value="{{ invoice_data.client_address }}">
+            <input type="hidden" name="notes" value="{{ invoice_data.notes }}">
+            <input type="hidden" name="tax_rate" value="{{ invoice_data.tax_rate }}">
+            <input type="hidden" name="subtotal" value="{{ invoice_data.subtotal }}">
+            <input type="hidden" name="tax_amount" value="{{ invoice_data.tax_amount }}">
+            <input type="hidden" name="total" value="{{ invoice_data.total }}">
+            <input type="hidden" name="currency" value="{{ invoice_data.currency }}">
+            {% for item in invoice_data.items %}
+            <input type="hidden" name="item_description[]" value="{{ item.description }}">
+            <input type="hidden" name="item_quantity[]" value="{{ item.quantity }}">
+            <input type="hidden" name="item_price[]" value="{{ item.price }}">
+            {% endfor %}
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Save to Dashboard
+            </button>
+        </form>
+        
+        <button class="btn btn-primary" id="emailButton">
+            <i class="fas fa-paper-plane"></i> Send to Client
+        </button>
+        
+        <button class="btn btn-outline" id="printButton">
+            <i class="fas fa-print"></i> Print
+        </button>
+        
+        <a href="{% url 'invoice_form' %}?document_type={{ document_type }}&template_id={{ template_id }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Edit
+        </a>
+    </div>
+</div>
+
+<style>
+    /* Preview Page Styles */
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .preview-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        position: relative;
+        min-height: 800px;
+        border: 1px solid #ddd;
+    }
+    
+    .watermark-preview {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 60px;
+        color: rgba(0,0,0,0.05);
+        z-index: 1;
+        pointer-events: none;
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    .invoice-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #4361ee;
+    }
+    
+    .invoice-title {
+        color: #4361ee;
+        margin-bottom: 0.5rem;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .invoice-details {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .company-info {
+        text-align: right;
+    }
+    
+    .company-name {
+        color: #3a0ca3;
+        margin-bottom: 0.5rem;
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    
+    .bill-to-section {
+        margin-bottom: 2rem;
+    }
+    
+    .bill-to-title {
+        color: #4361ee;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+    
+    .client-name {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .table-header {
+        background: #4361ee;
+        color: white;
+    }
+    
+    .table-header th {
+        padding: 1rem;
+        font-weight: 600;
+    }
+    
+    .table-row td {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .amounts-section {
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .amounts-container {
+        width: 400px;
+        font-size: 1.1rem;
+    }
+    
+    .amount-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+        padding: 0.5rem 0;
+    }
+    
+    .amount-label {
+        font-weight: 500;
+    }
+    
+    .amount-value {
+        font-weight: 500;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        font-size: 1.3rem;
+        border-top: 3px solid #3a0ca3;
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .total-label {
+        font-weight: bold;
+    }
+    
+    .total-value {
+        font-weight: bold;
+    }
+    
+    .notes-section {
+        margin-top: 3rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #4361ee;
+    }
+    
+    .notes-title {
+        color: #4361ee;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    .notes-content {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .invoice-footer {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 2px solid #eee;
+        text-align: center;
+        color: #666;
+    }
+    
+    .footer-thanks {
+        margin-top: 0.5rem;
+    }
+    
+    .action-buttons {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .save-form {
+        display: inline;
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .hindi-text {
+        font-family: 'Arial Unicode MS', 'Nirmala UI', sans-serif;
+    }
+</style>
+
+<script>
+    // JavaScript functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const editToggle = document.getElementById('editToggle');
+        const saveButton = document.getElementById('saveButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const emailButton = document.getElementById('emailButton');
+        const printButton = document.getElementById('printButton');
+        const previewContainer = document.getElementById('preview-container');
+        
+        let editMode = false;
+        
+        // Edit Mode Toggle
+        editToggle.addEventListener('click', function() {
+            editMode = !editMode;
+            
+            if (editMode) {
+                editToggle.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                previewContainer.setAttribute('contenteditable', 'true');
+                previewContainer.style.border = '2px dashed #4361ee';
+            } else {
+                editToggle.innerHTML = '<i class="fas fa-edit"></i> Edit Text';
+                previewContainer.removeAttribute('contenteditable');
+                previewContainer.style.border = '1px solid #ddd';
+                alert('Changes saved to preview!');
+            }
+        });
+        
+        // Save Invoice
+        saveButton.addEventListener('click', function() {
+            document.querySelector('.save-form').submit();
+        });
+        
+        // Download PDF
+        downloadButton.addEventListener('click', function() {
+            document.getElementById('watermark').style.display = 'block';
+            
+            const element = document.getElementById('preview-container');
+            const options = {
+                margin: [10, 10, 10, 10],
+                filename: '{{ document_type }}_{{ invoice_data.invoice_number }}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                }
+            };
+            
+            html2pdf().set(options).from(element).save().then(() => {
+                document.getElementById('watermark').style.display = 'none';
+                alert('PDF downloaded successfully!');
+            }).catch(error => {
+                console.error('PDF generation error:', error);
+                alert('Error generating PDF. Please try again.');
+                document.getElementById('watermark').style.display = 'none';
+            });
+        });
+        
+        // Email Button
+        emailButton.addEventListener('click', function() {
+            alert('Email functionality will be implemented soon!');
+        });
+        
+        // Print Button
+        printButton.addEventListener('click', function() {
+            window.print();
+        });
+        
+        // Keyboard shortcut for download (Ctrl + D)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                downloadButton.click();
+            }
+        });
+    });
+</script>
+{% endblock %}

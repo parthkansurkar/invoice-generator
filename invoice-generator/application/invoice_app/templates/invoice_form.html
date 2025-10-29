@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Create {{ document_type|title }} - BillKar बिलकर{% endblock %}
+
+{% block content %}
+<div class="card fade-in">
+    <div class="card-header">
+        <h2 class="card-title">Create Your {{ document_type|title }}</h2>
+        <p>Fill in the details for your {{ document_type }}.</p>
+    </div>
+    
+    <form method="POST" action="{% url 'preview' %}">
+        {% csrf_token %}
+        <input type="hidden" name="document_type" value="{{ document_type }}">
+        <input type="hidden" name="template_id" value="{{ template_id }}">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label for="invoice_number" class="form-label">{{ document_type|title }} Number *</label>
+                <input type="text" class="form-control" id="invoice_number" name="invoice_number" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="date" class="form-label">Date *</label>
+                <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+            
+            <!-- Currency Selection -->
+            <div class="form-group">
+                <label for="currency" class="form-label">Currency *</label>
+                <select class="form-control" id="currency" name="currency" required>
+                    <option value="₹">Indian Rupee (₹)</option>
+                    <option value="$">US Dollar ($)</option>
+                    <option value="€">Euro (€)</option>
+                    <option value="£">British Pound (£)</option>
+                    <option value="¥">Japanese Yen (¥)</option>
+                    <option value="A$">Australian Dollar (A$)</option>
+                    <option value="C$">Canadian Dollar (C$)</option>
+                    <option value="CHF">Swiss Franc (CHF)</option>
+                    <option value="CN¥">Chinese Yuan (CN¥)</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="client_name" class="form-label">Client Name *</label>
+                <input type="text" class="form-control" id="client_name" name="client_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="client_email" class="form-label">Client Email</label>
+                <input type="email" class="form-control" id="client_email" name="client_email">
+            </div>
+            
+            <div class="form-group">
+                <label for="client_phone" class="form-label">Client Phone</label>
+                <input type="tel" class="form-control" id="client_phone" name="client_phone">
+            </div>
+            
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="client_address" class="form-label">Client Address</label>
+                <textarea class="form-control" id="client_address" name="client_address" rows="3"></textarea>
+            </div>
+        </div>
+        
+        <h3 style="margin: 2rem 0 1rem 0;">Items</h3>
+        
+        <div id="items-container">
+            <div class="item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; margin-bottom: 1rem; align-items: end;">
+                <div>
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" name="item_description[]" required>
+                </div>
+                <div>
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-control" name="item_quantity[]" min="1" value="1" required>
+                </div>
+                <div>
+                    <label class="form-label">Price</label>
+                    <input type="number" class="form-control" name="item_price[]" step="0.01" min="0" required>
+                </div>
+                <div>
+                    <label class="form-label">Amount</label>
+                    <input type="text" class="form-control" name="item_amount[]" readonly>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline" onclick="removeItem(this)" style="margin-bottom: 0.5rem;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <button type="button" class="btn btn-outline" onclick="addItem()">
+            <i class="fas fa-plus"></i> Add Item
+        </button>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+            <div class="form-group">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+            </div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">₹0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Tax (%):</span>
+                    <input type="number" id="tax_rate" name="tax_rate" min="0" max="100" value="0" style="width: 80px; text-align: right;"> 
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Tax Amount:</span>
+                    <span id="tax_amount">₹0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem; border-top: 1px solid #eee; padding-top: 0.5rem;">
+                    <span>Total:</span>
+                    <span id="total">₹0.00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary">Preview {{ document_type|title }}</button>
+            <button type="button" class="btn btn-outline" onclick="saveDraft()">Save as Draft</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    let itemCount = 1;
+    
+    function addItem() {
+        itemCount++;
+        const container = document.getElementById('items-container');
+        const newItem = document.createElement('div');
+        newItem.className = 'item-row';
+        newItem.innerHTML = `
+            <div>
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" name="item_description[]" required>
+            </div>
+            <div>
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-control" name="item_quantity[]" min="1" value="1" required>
+            </div>
+            <div>
+                <label class="form-label">Price</label>
+                <input type="number" class="form-control" name="item_price[]" step="0.01" min="0" required>
+            </div>
+            <div>
+                <label class="form-label">Amount</label>
+                <input type="text" class="form-control" name="item_amount[]" readonly>
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline" onclick="removeItem(this)" style="margin-bottom: 0.5rem;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(newItem);
+        
+        // Add event listeners to new inputs
+        const inputs = newItem.querySelectorAll('input[name="item_quantity[]"], input[name="item_price[]"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateTotals);
+        });
+    }
+    
+    function removeItem(button) {
+        if (itemCount > 1) {
+            button.closest('.item-row').remove();
+            itemCount--;
+            calculateTotals();
+        }
+    }
+    
+    function calculateTotals() {
+        let subtotal = 0;
+        const currency = document.getElementById('currency').value;
+        
+        document.querySelectorAll('.item-row').forEach(row => {
+            const quantity = parseFloat(row.querySelector('input[name="item_quantity[]"]').value) || 0;
+            const price = parseFloat(row.querySelector('input[name="item_price[]"]').value) || 0;
+            const amount = quantity * price;
+            
+            row.querySelector('input[name="item_amount[]"]').value = amount.toFixed(2);
+            subtotal += amount;
+        });
+        
+        const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
+        const taxAmount = subtotal * (taxRate / 100);
+        const total = subtotal + taxAmount;
+        
+        document.getElementById('subtotal').textContent = currency + subtotal.toFixed(2);
+        document.getElementById('tax_amount').textContent = currency + taxAmount.toFixed(2);
+        document.getElementById('total').textContent = currency + total.toFixed(2);
+    }
+    
+    function saveDraft() {
+        alert('Draft saved successfully!');
+    }
+    
+    // Add event listeners to existing inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[name="item_quantity[]"], input[name="item_price[]"]').forEach(input => {
+            input.addEventListener('input', calculateTotals);
+        });
+        
+        document.getElementById('tax_rate').addEventListener('input', calculateTotals);
+        document.getElementById('currency').addEventListener('change', calculateTotals);
+        
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').value = today;
+        
+        calculateTotals();
+    });
+</script>
+{% endblock %}
