@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BillKar - बिलकर{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+
+            /*Light Moder colors */
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --header-bg: #ffffff;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0,0,0,0.1);
+            
+        }
+        [data-theme="dark"]
+        {
+            --bg-color: #121212;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --header-bg: #ffffff;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s, color 0.3s ease, var(--border-color) 0.3s ease;
+        }
+        
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            
+        }
+        
+        body::before{
+            content: '';
+            position:fixed;
+            top: 0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:  linear-gradient(135deg, var(--bg-color) 0% , var(--card-bg) 100%);
+            z-index: -1;
+
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: var(--header-bg);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .hindi.text{
+            font-family: 'Arial Unicode MS','Nirmala UI', 'sans-serif';
+            margin-left: 5px;
+            color: var(--secondary);
+        }
+        
+        .hindi-text {
+            font-family: 'Arial Unicode MS', 'Nirmala UI', sans-serif;
+            margin-left: 5px;
+            color: var(--secondary);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            align-items: center;
+        }
+        
+        .nav-links li {
+            margin-left: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .theme-toggle-container {
+            display: flex;
+            align-items: center;
+            margin-left: 1rem;
+        }
+        
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0 2px 10px var(--shadow-color);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05s);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(45deg, #ffd700,#ff8c00);
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        [data-theme="dark"] .theme-toggle::before {
+            left: calc(100% - 24px);
+            background: linear-gradient(45deg, #b0b0b0, #e0e0e0);
+            box-shadow: 0 2px 5ox rgba(0,0,0,0.3);
+        }
+
+        .theme-toggle-icons {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 8px;
+            pointer-events: none
+        }
+
+        .theme-toggle-icons i{
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-icons .sun{
+           color: #ff8c00;       
+        }
+        .theme-toggle-icons .moon{
+           color: #b0b0b0;       
+        }
+
+        [data-theme="dark"] .theme-toggle-icons .sun{
+           opacity: 0.5;
+                  
+        }
+        [data-theme="dark"] .theme-toggle-icons .moon{
+           color: #e0e0e0;                  
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+<<<<<<< HEAD:invoice-generator/invoice_generator/invoice_app/templates/base.html
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        /* Download Animation Styles */
+        .download-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .download-animation.active {
+            display: flex;
+            opacity: 1;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .download-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-circle {
+            width: 100px;
+            height: 100px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto 2rem;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .download-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--primary);
+            font-size: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        .download-progress {
+            font-size: 16px;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .download-percentage {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .download-bar {
+            width: 100%;
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .download-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .download-success {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .download-success.active {
+            display: flex;
+            animation: slideUp 0.5s ease;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            animation: scaleIn 0.5s ease;
+        }
+
+        .success-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .success-subtext {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            opacity: 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translate(-50%, -50%) translateY(0);
+            }
+            40% {
+                transform: translate(-50%, -50%) translateY(-10px);
+            }
+            60% {
+                transform: translate(-50%, -50%) translateY(-5px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(1000px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    
+
+=======
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+>>>>>>> e037ea8bc6e8ef21546b8ee0513ac814a178a2e1:invoice-generator/application/invoice_app/templates/base.html
+        
+        /* Main Content Styles */
+        main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px var(--shadow-color);
+        }
+        
+        .card-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            outline: none;
+        }
+        
+        /* Template Selection */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .template-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 3px solid transparent;
+            background: var(--card-bg);
+        }
+        
+        .template-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px var(--shadow-color);
+        }
+        
+        .template-card.selected {
+            border-color: var(--primary);
+        }
+        
+        .template-preview {
+            height: 200px;
+            background: linear-gradient(45deg, #4361ee, #3a0ca3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .template-name {
+            padding: 1rem;
+            text-align: center;
+            background: white;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        /* Footer Styles */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--success);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Responsive Design */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-3px);
+            }
+        }
+
+        .bounce {
+            animation: bounce 0.6s ease;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem 0;
+            }
+            
+            .nav-links {
+                margin: 1rem 0;
+            }
+            
+            .nav-links li {
+                margin: 0 1rem;
+            }
+            
+            .auth-buttons {
+                margin-top: 1rem;
+            }
+            
+            .template-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .theme-toggle-container {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+
+            .download-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+        }
+
+        
+        /* Alert Messages */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: #c3e6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+         [data-theme="dark"] .alert-success {
+            background: #155724;
+            color: #d4edda;
+            border-color: #0f3d1a;
+        }
+
+        [data-theme="dark"] .alert-error {
+            background: #721c24;
+            color: #f8d7da;
+            border-color: #5a161c;
+        }
+
+        [data-theme="dark"] .alert-info {
+            background: #0c5460;
+            color: #d1ecf1;
+            border-color: #09414a;
+        }
+
+
+
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        /* Dashboard Styles */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            text-align: center;
+            transition: transform 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+<<<<<<< HEAD:invoice-generator/invoice_generator/invoice_app/templates/base.html
+=======
+
+>>>>>>> e037ea8bc6e8ef21546b8ee0513ac814a178a2e1:invoice-generator/application/invoice_app/templates/base.html
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px;
+            color: rgba(0,0,0,0.1);
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            font-weight: bold;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .watermark-hindi {
+            font-family: 'Arial Unicode MS', 'Nirmala UI', sans-serif;
+        }
+
+<<<<<<< HEAD:invoice-generator/invoice_generator/invoice_app/templates/base.html
+        [data-theme="dark"] .watermark {
+            color: rgba(255,255,255,0.05);
+        }
+
+        /* Print Styles */
+        @media print {
+            .navbar, footer, .btn, .alert, .theme-toggle-container, .download-animation {
+=======
+        /* Print Styles */
+        @media print {
+            .navbar, footer, .btn, .alert {
+>>>>>>> e037ea8bc6e8ef21546b8ee0513ac814a178a2e1:invoice-generator/application/invoice_app/templates/base.html
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd;
+            }
+
+            body {
+                background: white !important;
+<<<<<<< HEAD:invoice-generator/invoice_generator/invoice_app/templates/base.html
+                color: black !important;
+            }
+
+            .card {
+                background: white !important;
+                color: black !important;
+            }
+        }
+
+        /* Table Styles */
+        table {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        th, td {
+            border-color: var(--border-color) !important;
+            color: var(--text-color) !important;
+        }
+
+        /* Invoice Preview Specific */
+        .preview-container {
+            background: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .watermark-preview {
+            color: rgba(0,0,0,0.05) !important;
+        }
+
+        [data-theme="dark"] .watermark-preview {
+            color: rgba(255,255,255,0.05) !important;
+        }
+
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Download Animation -->
+    <div class="download-animation" id="downloadAnimation">
+        <div class="download-container">
+            <div class="download-circle">
+                <i class="fas fa-download download-icon"></i>
+            </div>
+            <div class="download-progress">Preparing your download...</div>
+            <div class="download-percentage" id="downloadPercentage">0%</div>
+            <div class="download-bar">
+                <div class="download-progress-bar" id="downloadProgressBar"></div>
+            </div>
+            <div class="download-success" id="downloadSuccess">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="success-text">Download Complete!</div>
+                <div class="success-subtext">Your file has been downloaded successfully</div>
+            </div>
+        </div>
+    </div>
+
+=======
+            }
+        }
+    </style>
+</head>
+<body>
+>>>>>>> e037ea8bc6e8ef21546b8ee0513ac814a178a2e1:invoice-generator/application/invoice_app/templates/base.html
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="{% url 'landing' %}" class="logo">
+                    <i class="fas fa-file-invoice"></i>
+                    BillKar <span class="hindi-text">बिलकर</span>
+                </a>
+                <ul class="nav-links">
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'document_choice' %}">Create Document</a></li>
+                        <li><a href="{% url 'template_selection' %}">Templates</a></li>
+                        <li><a href="#">History</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Sign Up</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#about">About</a></li>
+                    {% endif %}
+<<<<<<< HEAD:invoice-generator/invoice_generator/invoice_app/templates/base.html
+                    
+                    <!-- Dark Mode Toggle -->
+                    <li class="theme-toggle-container">
+                        <div class="theme-toggle" id="themeToggle">
+                            <div class="theme-toggle-icons">
+                                <i class="fas fa-sun sun"></i>
+                                <i class="fas fa-moon moon"></i>
+                            </div>
+                        </div>
+                    </li>
+=======
+>>>>>>> e037ea8bc6e8ef21546b8ee0513ac814a178a2e1:invoice-generator/application/invoice_app/templates/base.html
+                </ul>
+                <div class="auth-buttons">
+                    {% if user.is_authenticated %}
+                        {% if user.userprofile.company_name %}
+                            <span style="margin-right: 1rem;">Welcome, {{ user.userprofile.company_name }}</span>
+                        {% else %}
+                            <span style="margin-right: 1rem;">Welcome, {{ user.username }}</span>
+                        {% endif %}
+<<<<<<< HEAD:invoice-generator/invoice_generator/invoice_app/templates/base.html
+                        <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline">Logout</button>
+                        </form>
+=======
+                        <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+>>>>>>> e037ea8bc6e8ef21546b8ee0513ac814a178a2e1:invoice-generator/application/invoice_app/templates/base.html
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Sign Up</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} fade-in">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 BillKar <span class="hindi-text">बिलकर</span>. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Watermark Element -->
+    <div id="watermark" class="watermark">
+        BillKar <span class="watermark-hindi">बिलकर</span>
+    </div>
+
+    <script>
+        // Dark Mode Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            
+            // Check for saved theme preference or default to light
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            body.setAttribute('data-theme', savedTheme);
+            
+            // Add bounce animation on first load if dark mode
+            if (savedTheme === 'dark') {
+                themeToggle.classList.add('bounce');
+            }
+            
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                // Apply new theme
+                body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Add bounce animation
+                themeToggle.classList.add('bounce');
+                setTimeout(() => {
+                    themeToggle.classList.remove('bounce');
+                }, 600);
+            });
+            
+            // Template selection functionality
+            const templateCards = document.querySelectorAll('.template-card');
+            
+            templateCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    templateCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Update hidden input with selected template ID
+                    const templateId = this.getAttribute('data-template-id');
+                    if (document.getElementById('selected-template')) {
+                        document.getElementById('selected-template').value = templateId;
+                    }
+                });
+            });
+            
+            // Form validation
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    let valid = true;
+                    const requiredFields = this.querySelectorAll('[required]');
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            valid = false;
+                            field.style.borderColor = 'red';
+                        } else {
+                            field.style.borderColor = '';
+                        }
+                    });
+                    
+                    if (!valid) {
+                        e.preventDefault();
+                        alert('Please fill in all required fields.');
+                    }
+                });
+            });
+            
+            // Animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all cards for animation
+            const cards = document.querySelectorAll('.card, .stat-card, .template-card');
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+
+        // Download Animation Function
+        function showDownloadAnimation() {
+            const downloadAnimation = document.getElementById('downloadAnimation');
+            const downloadPercentage = document.getElementById('downloadPercentage');
+            const downloadProgressBar = document.getElementById('downloadProgressBar');
+            const downloadSuccess = document.getElementById('downloadSuccess');
+            
+            // Show animation
+            downloadAnimation.classList.add('active');
+            
+            // Simulate download progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                
+                downloadPercentage.textContent = Math.round(progress) + '%';
+                downloadProgressBar.style.width = progress + '%';
+                
+                if (progress === 100) {
+                    clearInterval(interval);
+                    
+                    // Show success after a short delay
+                    setTimeout(() => {
+                        downloadSuccess.classList.add('active');
+                        
+                        // Create confetti effect
+                        createConfetti();
+                        
+                        // Hide animation after success
+                        setTimeout(() => {
+                            downloadAnimation.classList.remove('active');
+                            downloadSuccess.classList.remove('active');
+                            downloadProgressBar.style.width = '0%';
+                            downloadPercentage.textContent = '0%';
+                        }, 2000);
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // Confetti Effect
+        function createConfetti() {
+            const downloadContainer = document.querySelector('.download-container');
+            const colors = ['#4361ee', '#3a0ca3', '#4cc9f0', '#f72585', '#7209b7'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear forwards`;
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                downloadContainer.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Make download function globally available
+        window.showDownloadAnimation = showDownloadAnimation;
+    </script>
+    
+    {% block extra_scripts %}
+    {% endblock %}
+</body>
+</html>
+
