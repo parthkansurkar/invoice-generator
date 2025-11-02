@@ -874,9 +874,9 @@
         <div class="container">
             <nav class="navbar">
                 <a href="{% url 'landing' %}" class="logo">
-                    <i class="fas fa-file-invoice"></i>
-                    BillKar <span class="hindi-text">बिलकर</span>
-                </a>
+    <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 30px; margin-right: 10px;">
+    YourBrandName
+</a>
                 <ul class="nav-links">
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
