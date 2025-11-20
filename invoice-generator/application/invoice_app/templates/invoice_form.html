@@ -3,218 +3,417 @@
 {% block title %}Create {{ document_type|title }} - BillKar बिलकर{% endblock %}
 
 {% block content %}
-<div class="card fade-in">
-    <div class="card-header">
-        <h2 class="card-title">Create Your {{ document_type|title }}</h2>
-        <p>Fill in the details for your {{ document_type }}.</p>
-    </div>
-    
-    <form method="POST" action="{% url 'preview' %}">
-        {% csrf_token %}
-        <input type="hidden" name="document_type" value="{{ document_type }}">
-        <input type="hidden" name="template_id" value="{{ template_id }}">
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <div class="form-group">
-                <label for="invoice_number" class="form-label">{{ document_type|title }} Number *</label>
-                <input type="text" class="form-control" id="invoice_number" name="invoice_number" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="date" class="form-label">Date *</label>
-                <input type="date" class="form-control" id="date" name="date" required>
-            </div>
-            
-            <!-- Currency Selection -->
-            <div class="form-group">
-                <label for="currency" class="form-label">Currency *</label>
-                <select class="form-control" id="currency" name="currency" required>
-                    <option value="₹">Indian Rupee (₹)</option>
-                    <option value="$">US Dollar ($)</option>
-                    <option value="€">Euro (€)</option>
-                    <option value="£">British Pound (£)</option>
-                    <option value="¥">Japanese Yen (¥)</option>
-                    <option value="A$">Australian Dollar (A$)</option>
-                    <option value="C$">Canadian Dollar (C$)</option>
-                    <option value="CHF">Swiss Franc (CHF)</option>
-                    <option value="CN¥">Chinese Yuan (CN¥)</option>
-                </select>
-            </div>
-            
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="client_name" class="form-label">Client Name *</label>
-                <input type="text" class="form-control" id="client_name" name="client_name" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="client_email" class="form-label">Client Email</label>
-                <input type="email" class="form-control" id="client_email" name="client_email">
-            </div>
-            
-            <div class="form-group">
-                <label for="client_phone" class="form-label">Client Phone</label>
-                <input type="tel" class="form-control" id="client_phone" name="client_phone">
-            </div>
-            
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="client_address" class="form-label">Client Address</label>
-                <textarea class="form-control" id="client_address" name="client_address" rows="3"></textarea>
-            </div>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Create {{ document_type|title }}</h2>
+            <p style="color: #666; margin-top: 0.5rem;">Fill in the details for your {{ document_type }}</p>
         </div>
         
-        <h3 style="margin: 2rem 0 1rem 0;">Items</h3>
-        
-        <div id="items-container">
-            <div class="item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; margin-bottom: 1rem; align-items: end;">
-                <div>
-                    <label class="form-label">Description</label>
-                    <input type="text" class="form-control" name="item_description[]" required>
+        <div class="card-body">
+            <!-- Template Indicator -->
+            <input type="hidden" name="template_id" value="{{ template_id }}">
+            <div style="background: '{{ template_data.background }}'; color: white; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center;">
+                <h4 style="margin: 0;"><i class="fas fa-palette"></i> Selected Template: {{ template_data.name }}</h4>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Style: {{ template_data.style|title }}</p>
+            </div>
+
+            <form method="POST" action="{% url 'preview' %}" id="invoiceForm">
+                {% csrf_token %}
+                <input type="hidden" name="document_type" value="{{ document_type }}">
+                <input type="hidden" name="template_id" value="{{ template_id }}">
+                
+                <!-- Company & Client Information -->
+                <div class="form-section">
+                    <h3 style="color: #333; margin-bottom: 1rem; border-bottom: 2px solid #4361ee; padding-bottom: 0.5rem;">
+                        <i class="fas fa-building"></i> Basic Information
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="invoice_number" class="form-label">Invoice Number *</label>
+                                <input type="text" class="form-control" id="invoice_number" name="invoice_number" required 
+                                       placeholder="e.g., INV-001">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="date" class="form-label">Date *</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="form-label">Quantity</label>
-                    <input type="number" class="form-control" name="item_quantity[]" min="1" value="1" required>
+
+                <!-- Client Information -->
+                <div class="form-section">
+                    <h3 style="color: #333; margin-bottom: 1rem; border-bottom: 2px solid #4361ee; padding-bottom: 0.5rem;">
+                        <i class="fas fa-user"></i> Client Information
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="client_name" class="form-label">Client Name *</label>
+                        <input type="text" class="form-control" id="client_name" name="client_name" required 
+                               placeholder="Enter client name">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="client_email" class="form-label">Client Email</label>
+                                <input type="email" class="form-control" id="client_email" name="client_email" 
+                                       placeholder="Enter client email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="client_phone" class="form-label">Client Phone</label>
+                                <input type="text" class="form-control" id="client_phone" name="client_phone" 
+                                       placeholder="Enter client phone number">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="client_address" class="form-label">Client Address</label>
+                        <textarea class="form-control" id="client_address" name="client_address" rows="3" 
+                                  placeholder="Enter client address"></textarea>
+                    </div>
                 </div>
-                <div>
-                    <label class="form-label">Price</label>
-                    <input type="number" class="form-control" name="item_price[]" step="0.01" min="0" required>
-                </div>
-                <div>
-                    <label class="form-label">Amount</label>
-                    <input type="text" class="form-control" name="item_amount[]" readonly>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-outline" onclick="removeItem(this)" style="margin-bottom: 0.5rem;">
-                        <i class="fas fa-trash"></i>
+
+                <!-- Items Section -->
+                <div class="form-section">
+                    <h3 style="color: #333; margin-bottom: 1rem; border-bottom: 2px solid #4361ee; padding-bottom: 0.5rem;">
+                        <i class="fas fa-list"></i> Items & Services
+                    </h3>
+                    
+                    <div id="items-container">
+                        <div class="item-row">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label class="form-label">Description</label>
+                                        <input type="text" class="form-control" name="item_description[]" 
+                                               placeholder="Item or service description" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" class="form-control quantity" name="item_quantity[]" 
+                                               value="1" min="1" step="0.01" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Price</label>
+                                        <input type="number" class="form-control price" name="item_price[]" 
+                                               value="0" min="0" step="0.01" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Amount</label>
+                                        <input type="text" class="form-control amount" name="item_amount[]" 
+                                               value="0.00" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="form-group">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="button" class="btn btn-danger remove-item" style="width: 100%;" disabled>
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-outline-primary" id="add-item">
+                        <i class="fas fa-plus"></i> Add Item
                     </button>
                 </div>
-            </div>
+
+                <!-- Tax & Notes -->
+                <div class="form-section">
+                    <h3 style="color: #333; margin-bottom: 1rem; border-bottom: 2px solid #4361ee; padding-bottom: 0.5rem;">
+                        <i class="fas fa-calculator"></i> Tax & Notes
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                                <input type="number" class="form-control" id="tax_rate" name="tax_rate" 
+                                       value="18" min="0" max="100" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="currency" class="form-label">Currency</label>
+                                <select class="form-control" id="currency" name="currency">
+                                    <option value="₹" selected>Indian Rupee (₹)</option>
+                                    <option value="$">US Dollar ($)</option>
+                                    <option value="€">Euro (€)</option>
+                                    <option value="£">British Pound (£)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Additional notes or terms..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Totals Display -->
+                <div class="totals-section" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 2rem 0;">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h5>Subtotal</h5>
+                            <h4 id="subtotal-display" style="color: #28a745;">₹0.00</h4>
+                            <input type="hidden" name="subtotal" id="subtotal" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Tax Amount</h5>
+                            <h4 id="tax-amount-display" style="color: #dc3545;">₹0.00</h4>
+                            <input type="hidden" name="tax_amount" id="tax_amount" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Total</h5>
+                            <h4 id="total-display" style="color: #007bff;">₹0.00</h4>
+                            <input type="hidden" name="total" id="total" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions" style="text-align: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-eye"></i> Preview {{ document_type|title }}
+                    </button>
+                    <a href="{% url 'template_selection' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Templates
+                    </a>
+                </div>
+            </form>
         </div>
-        
-        <button type="button" class="btn btn-outline" onclick="addItem()">
-            <i class="fas fa-plus"></i> Add Item
-        </button>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
-            <div class="form-group">
-                <label for="notes" class="form-label">Notes</label>
-                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
-            </div>
-            
-            <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Subtotal:</span>
-                    <span id="subtotal">₹0.00</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Tax (%):</span>
-                    <input type="number" id="tax_rate" name="tax_rate" min="0" max="100" value="0" style="width: 80px; text-align: right;"> 
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Tax Amount:</span>
-                    <span id="tax_amount">₹0.00</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem; border-top: 1px solid #eee; padding-top: 0.5rem;">
-                    <span>Total:</span>
-                    <span id="total">₹0.00</span>
-                </div>
-            </div>
-        </div>
-        
-        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-            <button type="submit" class="btn btn-primary">Preview {{ document_type|title }}</button>
-            <button type="button" class="btn btn-outline" onclick="saveDraft()">Save as Draft</button>
-        </div>
-    </form>
+    </div>
 </div>
 
+<style>
+    .form-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e1e5e9;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-control {
+        border: 2px solid #e1e5e9;
+        border-radius: 6px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    
+    .item-row {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        border: 1px solid #e1e5e9;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+    
+    .totals-section h4, .totals-section h5 {
+        margin: 0;
+    }
+</style>
+
 <script>
-    let itemCount = 1;
-    
-    function addItem() {
-        itemCount++;
-        const container = document.getElementById('items-container');
-        const newItem = document.createElement('div');
-        newItem.className = 'item-row';
-        newItem.innerHTML = `
-            <div>
-                <label class="form-label">Description</label>
-                <input type="text" class="form-control" name="item_description[]" required>
-            </div>
-            <div>
-                <label class="form-label">Quantity</label>
-                <input type="number" class="form-control" name="item_quantity[]" min="1" value="1" required>
-            </div>
-            <div>
-                <label class="form-label">Price</label>
-                <input type="number" class="form-control" name="item_price[]" step="0.01" min="0" required>
-            </div>
-            <div>
-                <label class="form-label">Amount</label>
-                <input type="text" class="form-control" name="item_amount[]" readonly>
-            </div>
-            <div>
-                <button type="button" class="btn btn-outline" onclick="removeItem(this)" style="margin-bottom: 0.5rem;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-        container.appendChild(newItem);
+    document.addEventListener('DOMContentLoaded', function() {
+        const itemsContainer = document.getElementById('items-container');
+        const addItemBtn = document.getElementById('add-item');
+        const taxRateInput = document.getElementById('tax_rate');
+        const currencySelect = document.getElementById('currency');
         
-        // Add event listeners to new inputs
-        const inputs = newItem.querySelectorAll('input[name="item_quantity[]"], input[name="item_price[]"]');
-        inputs.forEach(input => {
-            input.addEventListener('input', calculateTotals);
+        let itemCount = 1;
+        
+        // Add new item row
+        addItemBtn.addEventListener('click', function() {
+            itemCount++;
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <input type="text" class="form-control" name="item_description[]" 
+                                   placeholder="Item or service description" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input type="number" class="form-control quantity" name="item_quantity[]" 
+                                   value="1" min="1" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input type="number" class="form-control price" name="item_price[]" 
+                                   value="0" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <input type="text" class="form-control amount" name="item_amount[]" 
+                                   value="0.00" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-danger remove-item" style="width: 100%;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            itemsContainer.appendChild(newRow);
+            
+            // Enable remove buttons for all but first row
+            updateRemoveButtons();
+            
+            // Add event listeners to new inputs
+            const quantityInput = newRow.querySelector('.quantity');
+            const priceInput = newRow.querySelector('.price');
+            const amountInput = newRow.querySelector('.amount');
+            
+            quantityInput.addEventListener('input', calculateAmount);
+            priceInput.addEventListener('input', calculateAmount);
         });
-    }
-    
-    function removeItem(button) {
-        if (itemCount > 1) {
-            button.closest('.item-row').remove();
-            itemCount--;
-            calculateTotals();
-        }
-    }
-    
-    function calculateTotals() {
-        let subtotal = 0;
-        const currency = document.getElementById('currency').value;
         
-        document.querySelectorAll('.item-row').forEach(row => {
-            const quantity = parseFloat(row.querySelector('input[name="item_quantity[]"]').value) || 0;
-            const price = parseFloat(row.querySelector('input[name="item_price[]"]').value) || 0;
+        // Remove item row
+        itemsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-item') || e.target.closest('.remove-item')) {
+                const itemRow = e.target.closest('.item-row');
+                if (itemsContainer.children.length > 1) {
+                    itemRow.remove();
+                    updateRemoveButtons();
+                    calculateTotals();
+                }
+            }
+        });
+        
+        // Calculate amount for individual item
+        function calculateAmount(e) {
+            const row = e.target.closest('.item-row');
+            const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+            const price = parseFloat(row.querySelector('.price').value) || 0;
             const amount = quantity * price;
             
-            row.querySelector('input[name="item_amount[]"]').value = amount.toFixed(2);
-            subtotal += amount;
+            row.querySelector('.amount').value = amount.toFixed(2);
+            calculateTotals();
+        }
+        
+        // Calculate all totals
+        function calculateTotals() {
+            let subtotal = 0;
+            const amountInputs = document.querySelectorAll('.amount');
+            
+            amountInputs.forEach(input => {
+                subtotal += parseFloat(input.value) || 0;
+            });
+            
+            const taxRate = parseFloat(taxRateInput.value) || 0;
+            const taxAmount = (subtotal * taxRate) / 100;
+            const total = subtotal + taxAmount;
+            const currency = currencySelect.value;
+            
+            // Update display
+            document.getElementById('subtotal-display').textContent = `${currency}${subtotal.toFixed(2)}`;
+            document.getElementById('tax-amount-display').textContent = `${currency}${taxAmount.toFixed(2)}`;
+            document.getElementById('total-display').textContent = `${currency}${total.toFixed(2)}`;
+            
+            // Update hidden fields
+            document.getElementById('subtotal').value = subtotal.toFixed(2);
+            document.getElementById('tax_amount').value = taxAmount.toFixed(2);
+            document.getElementById('total').value = total.toFixed(2);
+        }
+        
+        // Update remove buttons (disable for first row)
+        function updateRemoveButtons() {
+            const removeButtons = document.querySelectorAll('.remove-item');
+            removeButtons.forEach((btn, index) => {
+                btn.disabled = index === 0;
+            });
+        }
+        
+        // Event listeners for calculations
+        document.querySelectorAll('.quantity, .price').forEach(input => {
+            input.addEventListener('input', calculateAmount);
         });
         
-        const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
-        const taxAmount = subtotal * (taxRate / 100);
-        const total = subtotal + taxAmount;
-        
-        document.getElementById('subtotal').textContent = currency + subtotal.toFixed(2);
-        document.getElementById('tax_amount').textContent = currency + taxAmount.toFixed(2);
-        document.getElementById('total').textContent = currency + total.toFixed(2);
-    }
-    
-    function saveDraft() {
-        alert('Draft saved successfully!');
-    }
-    
-    // Add event listeners to existing inputs
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('input[name="item_quantity[]"], input[name="item_price[]"]').forEach(input => {
-            input.addEventListener('input', calculateTotals);
-        });
-        
-        document.getElementById('tax_rate').addEventListener('input', calculateTotals);
-        document.getElementById('currency').addEventListener('change', calculateTotals);
+        taxRateInput.addEventListener('input', calculateTotals);
+        currencySelect.addEventListener('change', calculateTotals);
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').value = today;
         
+        // Initial calculation
         calculateTotals();
+        updateRemoveButtons();
+        
+        // Form validation
+        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+            const items = document.querySelectorAll('.item-row');
+            let hasValidItems = false;
+            
+            items.forEach(item => {
+                const description = item.querySelector('input[name="item_description[]"]').value.trim();
+                if (description) {
+                    hasValidItems = true;
+                }
+            });
+            
+            if (!hasValidItems) {
+                e.preventDefault();
+                alert('Please add at least one item with description.');
+            }
+        });
     });
 </script>
 {% endblock %}
