@@ -1,11 +1,12 @@
 # invoice_app/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import CustomUserCreationForm, UserProfileForm
-from .models import UserProfile, Invoice, InvoiceItem
+from django.db import IntegrityError
+from .forms import CustomUserCreationForm, UserProfileForm, PasswordResetForm, SetNewPasswordForm
+from .models import UserProfile, Invoice, InvoiceItem, PasswordResetOTP
 
 # Template data with different designs
 TEMPLATES_DATA = {
@@ -61,44 +62,217 @@ def landing(request):
 
 def register(request):
     """User registration view"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            
-            # Auto-login after registration
-            username = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            
-            if user is not None:
-                login(request, user)
-                messages.success(request, 'Account created successfully! Please complete your profile.')
-                return redirect('profile_setup')
-            else:
-                messages.error(request, 'Auto-login failed. Please login manually.')
-                return redirect('login')
+            try:
+                user = form.save()
+                
+                # Auto-login after registration
+                username = form.cleaned_data.get('email')
+                password = form.cleaned_data.get('password1')
+                user = authenticate(username=username, password=password)
+                
+                if user is not None:
+                    login(request, user)
+                    messages.success(request, 'Account created successfully! Please complete your profile.')
+                    return redirect('profile_setup')
+                else:
+                    messages.error(request, 'Auto-login failed. Please login manually.')
+                    return redirect('login')
+                    
+            except IntegrityError:
+                messages.error(request, 'This email is already registered. Please use a different email.')
+            except Exception as e:
+                messages.error(request, f'An error occurred during registration: {str(e)}')
+        else:
+            # Form is invalid, show errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = CustomUserCreationForm()
     
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'register.html', {'form': form})
+
+def custom_login(request):
+    """Custom login view to handle authentication"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'Welcome back, {user.username}!')
+            
+            # Check if user has a complete profile
+            try:
+                profile = UserProfile.objects.get(user=user)
+                if not profile.company_name or not profile.phone:
+                    messages.info(request, 'Please complete your business profile.')
+                    return redirect('profile_setup')
+            except UserProfile.DoesNotExist:
+                messages.info(request, 'Please complete your business profile setup.')
+                return redirect('profile_setup')
+                
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Invalid email or password. Please try again.')
+    
+    return render(request, 'login.html')
+
+def forgot_password(request):
+    """Forgot password - Step 1: Enter email to get OTP"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                # Use filter().first() to handle multiple users
+                user = User.objects.filter(email=email).first()
+                if not user:
+                    messages.error(request, 'No account found with this email address.')
+                    return render(request, 'forgot_password.html', {'form': form})
+                
+                # Generate OTP
+                otp_obj = PasswordResetOTP.generate_otp(user)
+                
+                # Print OTP to console
+                print(f"\n{'='*50}")
+                print(f"PASSWORD RESET OTP for {email}")
+                print(f"OTP: {otp_obj.otp}")
+                print(f"Valid for 10 minutes")
+                print(f"{'='*50}\n")
+                
+                messages.success(request, f'OTP has been sent. Check console for OTP.')
+                request.session['reset_email'] = email
+                request.session['user_id'] = user.id
+                return redirect('verify_otp')
+                    
+            except Exception as e:
+                messages.error(request, f'An error occurred: {str(e)}')
+    else:
+        form = PasswordResetForm()
+    
+    return render(request, 'forgot_password.html', {'form': form})
+
+def verify_otp(request):
+    """Forgot password - Step 2: Verify OTP"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    email = request.session.get('reset_email')
+    user_id = request.session.get('user_id')
+    
+    if not email or not user_id:
+        messages.error(request, 'Please start the password reset process again.')
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        try:
+            user = User.objects.filter(id=user_id).first()
+            if not user:
+                messages.error(request, 'User not found. Please start over.')
+                return redirect('forgot_password')
+            
+            otp_obj = PasswordResetOTP.objects.filter(
+                user=user, 
+                otp=otp, 
+                is_used=False
+            ).first()
+            
+            if otp_obj and otp_obj.is_valid():
+                otp_obj.mark_used()
+                request.session['otp_verified'] = True
+                messages.success(request, 'OTP verified successfully. You can now set your new password.')
+                return redirect('set_new_password')
+            else:
+                messages.error(request, 'Invalid or expired OTP. Please try again.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            return redirect('forgot_password')
+    
+    return render(request, 'verify_otp.html', {'email': email})
+
+def set_new_password(request):
+    """Forgot password - Step 3: Set new password"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if not request.session.get('otp_verified'):
+        messages.error(request, 'Please verify OTP first.')
+        return redirect('forgot_password')
+    
+    user_id = request.session.get('user_id')
+    if not user_id:
+        messages.error(request, 'Session expired. Please start over.')
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        form = SetNewPasswordForm(request.POST)
+        if form.is_valid():
+            try:
+                user = User.objects.get(id=user_id)
+                new_password = form.cleaned_data['new_password']
+                user.set_password(new_password)
+                user.save()
+                
+                # Clear session data
+                request.session.pop('reset_email', None)
+                request.session.pop('otp_verified', None)
+                request.session.pop('user_id', None)
+                
+                messages.success(request, 'Password reset successfully! You can now login with your new password.')
+                return redirect('login')
+                
+            except User.DoesNotExist:
+                messages.error(request, 'User not found. Please start over.')
+                return redirect('forgot_password')
+    else:
+        form = SetNewPasswordForm()
+    
+    return render(request, 'set_new_password.html', {'form': form})
+
+def custom_logout(request):
+    """Custom logout view to handle logout properly"""
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, 'You have been logged out successfully.')
+        return redirect('landing')
+    else:
+        # If accessed via GET, show confirmation page
+        return render(request, 'logout_confirmation.html')
 
 @login_required
 def dashboard(request):
     """Dashboard view for authenticated users"""
-    # Use get_or_create to ensure profile always exists
-    profile, created = UserProfile.objects.get_or_create(
-        user=request.user,
-        defaults={
-            'company_name': 'Your Company',
-            'phone': 'Not provided',
-            'address': 'Not provided',
-            'pan_number': 'Not provided'
-        }
-    )
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        # Create a default profile if it doesn't exist
+        profile = UserProfile.objects.create(
+            user=request.user,
+            company_name="Your Company",
+            phone="Not provided",
+            address="Not provided", 
+            pan_number="Not provided"
+        )
+        messages.info(request, 'Please complete your business profile setup.')
+        return redirect('profile_setup')
     
-    # If profile was just created or is incomplete, redirect to setup
-    if created or not profile.company_name or profile.company_name == 'Your Company' or not profile.phone or profile.phone == 'Not provided':
+    # If profile is incomplete, redirect to setup
+    if not profile.company_name or profile.company_name == "Your Company" or not profile.phone or profile.phone == "Not provided":
         messages.info(request, 'Please complete your business profile setup.')
         return redirect('profile_setup')
     
@@ -127,22 +301,30 @@ def dashboard(request):
 @login_required
 def profile_setup(request):
     """User profile setup and update view"""
-    # Get or create user profile
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=request.user)
     
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('dashboard')
+            try:
+                form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('dashboard')
+            except Exception as e:
+                messages.error(request, f'Error saving profile: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = UserProfileForm(instance=profile)
     
     return render(request, 'profile_setup.html', {
         'form': form, 
-        'user_profile': profile,
-        'is_new_profile': created
+        'user_profile': profile
     })
 
 @login_required
@@ -155,7 +337,12 @@ def template_selection(request):
     """Template selection view"""
     if request.method == 'POST':
         document_type = request.POST.get('document_type')
-        return render(request, 'template_selection.html', {'document_type': document_type})
+        # Pass the templates data to the template
+        templates = TEMPLATES_DATA.items()
+        return render(request, 'template_selection.html', {
+            'document_type': document_type,
+            'templates': templates
+        })
     return redirect('document_choice')
 
 @login_required
@@ -164,9 +351,14 @@ def invoice_form(request):
     if request.method == 'POST':
         document_type = request.POST.get('document_type')
         template_id = request.POST.get('template_id')
+        
+        # Get template data for the selected template
+        template_data = TEMPLATES_DATA.get(int(template_id), TEMPLATES_DATA[1])
+        
         return render(request, 'invoice_form.html', {
             'document_type': document_type,
-            'template_id': template_id
+            'template_id': template_id,
+            'template_data': template_data  # Pass template data to form
         })
     
     # If accessed via GET, redirect to document choice
@@ -179,7 +371,7 @@ def preview(request):
         document_type = request.POST.get('document_type')
         template_id = int(request.POST.get('template_id', 1))
         
-        # Get template data
+        # Get template data for the selected template
         template_data = TEMPLATES_DATA.get(template_id, TEMPLATES_DATA[1])
         
         # Extract form data
@@ -195,8 +387,8 @@ def preview(request):
             'subtotal': request.POST.get('subtotal', '0.00').replace('$', '').replace('₹', '').replace('€', '').replace('£', '').replace('¥', '').replace('A$', '').replace('C$', '').replace('CHF', '').replace('CN¥', ''),
             'tax_amount': request.POST.get('tax_amount', '0.00').replace('$', '').replace('₹', '').replace('€', '').replace('£', '').replace('¥', '').replace('A$', '').replace('C$', '').replace('CHF', '').replace('CN¥', ''),
             'total': request.POST.get('total', '0.00').replace('$', '').replace('₹', '').replace('€', '').replace('£', '').replace('¥', '').replace('A$', '').replace('C$', '').replace('CHF', '').replace('CN¥', ''),
-            'currency': request.POST.get('currency', '₹'),  # Add currency
-            'template': template_data  # Add template data
+            'currency': request.POST.get('currency', '₹'),
+            'template': template_data  # Use the selected template data
         }
         
         # Process items
@@ -247,7 +439,7 @@ def save_invoice(request):
                 tax_amount=request.POST.get('tax_amount', '0').replace('$', '').replace('₹', '').replace('€', '').replace('£', '').replace('¥', '').replace('A$', '').replace('C$', '').replace('CHF', '').replace('CN¥', ''),
                 total=request.POST.get('total', '0').replace('$', '').replace('₹', '').replace('€', '').replace('£', '').replace('¥', '').replace('A$', '').replace('C$', '').replace('CHF', '').replace('CN¥', ''),
                 notes=request.POST.get('notes'),
-                template_id=request.POST.get('template_id'),
+                template_id=request.POST.get('template_id', 1),  # Save the selected template_id
                 document_type=request.POST.get('document_type')
             )
             invoice.save()
