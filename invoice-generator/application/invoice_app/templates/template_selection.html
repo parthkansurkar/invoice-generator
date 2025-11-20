@@ -1,63 +1,643 @@
 {% extends 'base.html' %}
 
-{% block title %}Choose Template - BillKar बिलकर{% endblock %}
+{% block title %}Select Template - BillKar बिलकर{% endblock %}
 
 {% block content %}
-<div class="card fade-in">
-    <div class="card-header">
-        <h2 class="card-title">Select a Template</h2>
-        <p>Choose from our collection of professional templates for your {{ document_type }}.</p>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Choose a Template</h2>
+            <p style="color: #666; margin-top: 0.5rem;">Select a design for your {{ document_type }}</p>
+        </div>
+        
+        <div class="card-body">
+            <form method="POST" action="{% url 'invoice_form' %}">
+                {% csrf_token %}
+                <input type="hidden" name="document_type" value="{{ document_type }}">
+                
+                <div class="templates-grid">
+                    <!-- Template 1: Modern Blue -->
+                    <div class="template-card">
+                        <input type="radio" name="template_id" value="1" id="template1" 
+                               {% if not selected_template %}checked{% endif %} class="template-radio">
+                        <label for="template1" class="template-label">
+                            <div class="template-preview" style="background: linear-gradient(135deg, #4361ee, #3a0ca3); border-left: 4px solid #4361ee;">
+                                <div class="template-header" style="background: #4361ee;">
+                                    <h4>Modern Blue</h4>
+                                    <div class="template-badge">Most Popular</div>
+                                </div>
+                                <div class="template-body">
+                                    <div class="color-palette">
+                                        <div class="color-dot" style="background: #4361ee" title="Primary Color"></div>
+                                        <div class="color-dot" style="background: #3a0ca3" title="Secondary Color"></div>
+                                    </div>
+                                    <p>Clean, professional design with blue gradient</p>
+                                    <div class="template-features">
+                                        <span class="feature-tag">Modern</span>
+                                        <span class="feature-tag">Professional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Template 2: Professional Green -->
+                    <div class="template-card">
+                        <input type="radio" name="template_id" value="2" id="template2" class="template-radio">
+                        <label for="template2" class="template-label">
+                            <div class="template-preview" style="background: linear-gradient(135deg, #2a9d8f, #264653); border-left: 4px solid #2a9d8f;">
+                                <div class="template-header" style="background: #2a9d8f;">
+                                    <h4>Professional Green</h4>
+                                </div>
+                                <div class="template-body">
+                                    <div class="color-palette">
+                                        <div class="color-dot" style="background: #2a9d8f" title="Primary Color"></div>
+                                        <div class="color-dot" style="background: #264653" title="Secondary Color"></div>
+                                    </div>
+                                    <p>Eco-friendly and corporate green theme</p>
+                                    <div class="template-features">
+                                        <span class="feature-tag">Corporate</span>
+                                        <span class="feature-tag">Eco</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Template 3: Elegant Purple -->
+                    <div class="template-card">
+                        <input type="radio" name="template_id" value="3" id="template3" class="template-radio">
+                        <label for="template3" class="template-label">
+                            <div class="template-preview" style="background: linear-gradient(135deg, #7209b7, #3a0ca3); border-left: 4px solid #7209b7;">
+                                <div class="template-header" style="background: #7209b7;">
+                                    <h4>Elegant Purple</h4>
+                                </div>
+                                <div class="template-body">
+                                    <div class="color-palette">
+                                        <div class="color-dot" style="background: #7209b7" title="Primary Color"></div>
+                                        <div class="color-dot" style="background: #3a0ca3" title="Secondary Color"></div>
+                                    </div>
+                                    <p>Royal and sophisticated purple design</p>
+                                    <div class="template-features">
+                                        <span class="feature-tag">Elegant</span>
+                                        <span class="feature-tag">Luxury</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Template 4: Warm Orange -->
+                    <div class="template-card">
+                        <input type="radio" name="template_id" value="4" id="template4" class="template-radio">
+                        <label for="template4" class="template-label">
+                            <div class="template-preview" style="background: linear-gradient(135deg, #f77f00, #d62828); border-left: 4px solid #f77f00;">
+                                <div class="template-header" style="background: #f77f00;">
+                                    <h4>Warm Orange</h4>
+                                </div>
+                                <div class="template-body">
+                                    <div class="color-palette">
+                                        <div class="color-dot" style="background: #f77f00" title="Primary Color"></div>
+                                        <div class="color-dot" style="background: #d62828" title="Secondary Color"></div>
+                                    </div>
+                                    <p>Energetic and warm color combination</p>
+                                    <div class="template-features">
+                                        <span class="feature-tag">Energetic</span>
+                                        <span class="feature-tag">Creative</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Template 5: Corporate Gray -->
+                    <div class="template-card">
+                        <input type="radio" name="template_id" value="5" id="template5" class="template-radio">
+                        <label for="template5" class="template-label">
+                            <div class="template-preview" style="background: linear-gradient(135deg, #495057, #212529); border-left: 4px solid #495057;">
+                                <div class="template-header" style="background: #495057;">
+                                    <h4>Corporate Gray</h4>
+                                </div>
+                                <div class="template-body">
+                                    <div class="color-palette">
+                                        <div class="color-dot" style="background: #495057" title="Primary Color"></div>
+                                        <div class="color-dot" style="background: #212529" title="Secondary Color"></div>
+                                    </div>
+                                    <p>Minimalist and professional gray theme</p>
+                                    <div class="template-features">
+                                        <span class="feature-tag">Minimal</span>
+                                        <span class="feature-tag">Professional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Template 6: Creative Pink -->
+                    <div class="template-card">
+                        <input type="radio" name="template_id" value="6" id="template6" class="template-radio">
+                        <label for="template6" class="template-label">
+                            <div class="template-preview" style="background: linear-gradient(135deg, #f72585, #b5179e); border-left: 4px solid #f72585;">
+                                <div class="template-header" style="background: #f72585;">
+                                    <h4>Creative Pink</h4>
+                                    <div class="template-badge">Trending</div>
+                                </div>
+                                <div class="template-body">
+                                    <div class="color-palette">
+                                        <div class="color-dot" style="background: #f72585" title="Primary Color"></div>
+                                        <div class="color-dot" style="background: #b5179e" title="Secondary Color"></div>
+                                    </div>
+                                    <p>Vibrant and creative pink design</p>
+                                    <div class="template-features">
+                                        <span class="feature-tag">Creative</span>
+                                        <span class="feature-tag">Modern</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="template-preview-large" id="largePreview" style="display: none;">
+                    <div class="preview-header">
+                        <h3 id="previewTemplateName">Template Preview</h3>
+                        <button type="button" class="btn-close" id="closePreview">&times;</button>
+                    </div>
+                    <div class="preview-content" id="previewContent">
+                        <!-- Dynamic preview content will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="form-actions" style="margin-top: 2rem; text-align: center;">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-arrow-right"></i> Continue with Selected Template
+                    </button>
+                    <a href="{% url 'document_choice' %}" class="btn btn-outline-secondary" style="margin-left: 1rem;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-    
-    <div class="template-grid">
-        <div class="template-card" data-template-id="1">
-            <div class="template-preview" style="background: linear-gradient(45deg, #4361ee, #3a0ca3);">
-                Modern Blue
-            </div>
-            <div class="template-name">Modern Blue</div>
-        </div>
-        
-        <div class="template-card" data-template-id="2">
-            <div class="template-preview" style="background: linear-gradient(45deg, #2a9d8f, #264653);">
-                Professional Green
-            </div>
-            <div class="template-name">Professional Green</div>
-        </div>
-        
-        <div class="template-card" data-template-id="3">
-            <div class="template-preview" style="background: linear-gradient(45deg, #7209b7, #3a0ca3);">
-                Elegant Purple
-            </div>
-            <div class="template-name">Elegant Purple</div>
-        </div>
-        
-        <div class="template-card" data-template-id="4">
-            <div class="template-preview" style="background: linear-gradient(45deg, #f77f00, #d62828);">
-                Warm Orange
-            </div>
-            <div class="template-name">Warm Orange</div>
-        </div>
-        
-        <div class="template-card" data-template-id="5">
-            <div class="template-preview" style="background: linear-gradient(45deg, #495057, #212529);">
-                Corporate Gray
-            </div>
-            <div class="template-name">Corporate Gray</div>
-        </div>
-        
-        <div class="template-card" data-template-id="6">
-            <div class="template-preview" style="background: linear-gradient(45deg, #f72585, #b5179e);">
-                Creative Pink
-            </div>
-            <div class="template-name">Creative Pink</div>
-        </div>
-    </div>
-    
-    <form method="POST" action="{% url 'invoice_form' %}" style="margin-top: 2rem;">
-        {% csrf_token %}
-        <input type="hidden" name="document_type" value="{{ document_type }}">
-        <input type="hidden" id="selected-template" name="template_id" required>
-        <button type="submit" class="btn btn-primary">Continue with Selected Template</button>
-    </form>
 </div>
+
+<style>
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .template-card {
+        position: relative;
+    }
+    
+    .template-radio {
+        display: none;
+    }
+    
+    .template-label {
+        display: block;
+        cursor: pointer;
+        border: 2px solid #e1e5e9;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .template-radio:checked + .template-label {
+        border-color: #4361ee;
+        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+        transform: translateY(-5px);
+    }
+    
+    .template-label:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .template-preview {
+        height: 280px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .template-header {
+        padding: 1.5rem;
+        color: white;
+        text-align: center;
+        position: relative;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .template-header h4 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    
+    .template-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+    
+    .template-body {
+        padding: 1.5rem;
+        background: white;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .color-palette {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        justify-content: center;
+    }
+    
+    .color-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        cursor: help;
+        transition: transform 0.2s ease;
+    }
+    
+    .color-dot:hover {
+        transform: scale(1.2);
+    }
+    
+    .template-body p {
+        margin: 0 0 1rem 0;
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        text-align: center;
+    }
+    
+    .template-features {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .feature-tag {
+        background: #f8f9fa;
+        color: #495057;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid #e9ecef;
+    }
+    
+    .template-preview-large {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 600px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+    }
+    
+    .preview-header {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .preview-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    
+    .btn-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.3s ease;
+    }
+    
+    .btn-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .preview-content {
+        padding: 2rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .preview-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    
+    .form-actions {
+        border-top: 1px solid #e9ecef;
+        padding-top: 2rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+    }
+    
+    /* Selection animation */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .template-radio:checked + .template-label {
+        animation: pulse 0.6s ease;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .templates-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .template-preview {
+            height: 250px;
+        }
+        
+        .template-header {
+            padding: 1rem;
+        }
+        
+        .template-body {
+            padding: 1rem;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .form-actions {
+            text-align: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .container {
+            padding: 0.5rem;
+        }
+        
+        .template-preview {
+            height: 220px;
+        }
+        
+        .template-header h4 {
+            font-size: 1.1rem;
+        }
+        
+        .template-body p {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const templateLabels = document.querySelectorAll('.template-label');
+        const largePreview = document.getElementById('largePreview');
+        const previewOverlay = document.createElement('div');
+        const previewContent = document.getElementById('previewContent');
+        const previewTemplateName = document.getElementById('previewTemplateName');
+        const closePreview = document.getElementById('closePreview');
+        
+        // Create overlay for large preview
+        previewOverlay.className = 'preview-overlay';
+        document.body.appendChild(previewOverlay);
+        
+        // Template data for previews
+        const templateData = {
+            1: {
+                name: 'Modern Blue',
+                colors: ['#4361ee', '#3a0ca3'],
+                gradient: 'linear-gradient(135deg, #4361ee, #3a0ca3)',
+                description: 'Clean, professional design perfect for corporate invoices and modern businesses.'
+            },
+            2: {
+                name: 'Professional Green',
+                colors: ['#2a9d8f', '#264653'],
+                gradient: 'linear-gradient(135deg, #2a9d8f, #264653)',
+                description: 'Eco-friendly green theme ideal for environmental companies and corporate firms.'
+            },
+            3: {
+                name: 'Elegant Purple',
+                colors: ['#7209b7', '#3a0ca3'],
+                gradient: 'linear-gradient(135deg, #7209b7, #3a0ca3)',
+                description: 'Royal purple design for luxury brands and sophisticated business presentations.'
+            },
+            4: {
+                name: 'Warm Orange',
+                colors: ['#f77f00', '#d62828'],
+                gradient: 'linear-gradient(135deg, #f77f00, #d62828)',
+                description: 'Energetic orange theme perfect for creative agencies and vibrant businesses.'
+            },
+            5: {
+                name: 'Corporate Gray',
+                colors: ['#495057', '#212529'],
+                gradient: 'linear-gradient(135deg, #495057, #212529)',
+                description: 'Minimalist gray design for professional services and corporate documentation.'
+            },
+            6: {
+                name: 'Creative Pink',
+                colors: ['#f72585', '#b5179e'],
+                gradient: 'linear-gradient(135deg, #f72585, #b5179e)',
+                description: 'Vibrant pink theme for creative industries, fashion, and modern brands.'
+            }
+        };
+        
+        // Add click listeners to template cards
+        templateLabels.forEach(label => {
+            const radio = label.previousElementSibling;
+            const templateId = radio.value;
+            
+            // Double click for large preview
+            label.addEventListener('dblclick', function() {
+                showLargePreview(templateId);
+            });
+            
+            // Single click for selection
+            label.addEventListener('click', function(e) {
+                if (e.detail === 1) { // Single click
+                    // Update all labels to remove selected state
+                    templateLabels.forEach(l => {
+                        l.style.borderColor = '#e1e5e9';
+                        l.style.boxShadow = 'none';
+                        l.style.transform = 'none';
+                    });
+                    
+                    // Add selected state to clicked label
+                    this.style.borderColor = '#4361ee';
+                    this.style.boxShadow = '0 8px 25px rgba(67, 97, 238, 0.3)';
+                    this.style.transform = 'translateY(-5px)';
+                    
+                    // Check the radio button
+                    radio.checked = true;
+                }
+            });
+        });
+        
+        // Show large preview function
+        function showLargePreview(templateId) {
+            const template = templateData[templateId];
+            
+            previewTemplateName.textContent = template.name;
+            previewContent.innerHTML = `
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="height: 120px; background: ${template.gradient}; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center;">
+                        <h4 style="color: white; margin: 0; font-size: 1.8rem;">${template.name}</h4>
+                    </div>
+                    <p style="color: #666; line-height: 1.6; margin-bottom: 1.5rem;">${template.description}</p>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h5 style="color: #333; margin-bottom: 1rem;">Color Palette:</h5>
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        ${template.colors.map(color => `
+                            <div style="text-align: center;">
+                                <div style="width: 60px; height: 60px; background: ${color}; border-radius: 8px; margin-bottom: 0.5rem; border: 2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+                                <small style="color: #666; font-family: monospace;">${color}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                    <h5 style="color: #333; margin-bottom: 1rem;">Preview Elements:</h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="background: ${template.colors[0]}; color: white; padding: 1rem; border-radius: 6px; text-align: center;">
+                            Header
+                        </div>
+                        <div style="border: 2px solid ${template.colors[0]}; padding: 1rem; border-radius: 6px; text-align: center;">
+                            Button
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            largePreview.style.display = 'block';
+            previewOverlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Close large preview
+        closePreview.addEventListener('click', closeLargePreview);
+        previewOverlay.addEventListener('click', closeLargePreview);
+        
+        function closeLargePreview() {
+            largePreview.style.display = 'none';
+            previewOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLargePreview();
+            }
+        });
+        
+        // Auto-select first template if none selected
+        const selectedTemplate = document.querySelector('.template-radio:checked');
+        if (!selectedTemplate) {
+            const firstRadio = document.querySelector('.template-radio');
+            if (firstRadio) {
+                firstRadio.checked = true;
+                const firstLabel = firstRadio.nextElementSibling;
+                firstLabel.style.borderColor = '#4361ee';
+                firstLabel.style.boxShadow = '0 8px 25px rgba(67, 97, 238, 0.3)';
+                firstLabel.style.transform = 'translateY(-5px)';
+            }
+        }
+        
+        // Add some interactive effects
+        templateLabels.forEach(label => {
+            label.addEventListener('mouseenter', function() {
+                if (!this.previousElementSibling.checked) {
+                    this.style.transform = 'translateY(-3px)';
+                    this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+                }
+            });
+            
+            label.addEventListener('mouseleave', function() {
+                if (!this.previousElementSibling.checked) {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                }
+            });
+        });
+        
+        // Form submission with loading state
+        const form = document.querySelector('form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        form.addEventListener('submit', function() {
+            const selectedTemplate = document.querySelector('.template-radio:checked');
+            if (selectedTemplate) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                submitBtn.disabled = true;
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -7,10 +7,71 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    /* Template-specific colors - using CSS variables */
+    :root {
+        --template-background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        --template-primary: #4361ee;
+        --template-secondary: #3a0ca3;
+    }
+    
+    .invoice-header {
+        background: var(--template-background);
+        color: white;
+        padding: 2rem;
+    }
+    
+    .invoice-title {
+        color: white;
+        border-bottom: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .table-header {
+        background: var(--template-primary);
+        color: white;
+    }
+    
+    .total-row {
+        border-top: 3px solid var(--template-secondary);
+    }
+    
+    .btn-primary {
+        background-color: var(--template-primary);
+        border-color: var(--template-primary);
+    }
+    
+    .btn-primary:hover {
+        background: var(--template-secondary);
+        border-color: var(--template-secondary);
+    }
+    
+    .notes-section {
+        border-left: 4px solid var(--template-primary);
+    }
+    
+    .bill-to-title, .notes-title {
+        color: var(--template-primary);
+    }
+    
+    .company-name {
+        color: var(--template-secondary);
+    }
+</style>
+
+<script>
+    // Set CSS variables from Django template data
+    document.documentElement.style.setProperty('--template-background', '{{ invoice_data.template.background }}');
+    document.documentElement.style.setProperty('--template-primary', '{{ invoice_data.template.primary_color }}');
+    document.documentElement.style.setProperty('--template-secondary', '{{ invoice_data.template.secondary_color }}');
+</script>
+
 <div class="card fade-in">
     <div class="card-header preview-header">
         <h2 class="card-title">Preview Your {{ document_type|title }}</h2>
         <div>
+            <span class="template-badge" style="background: '{{ invoice_data.template.background|default:'#4361ee' }}'; color: white; padding: 0.5rem 1rem; border-radius: 20px; margin-right: 1rem;">
+                <i class="fas fa-palette"></i> {{ invoice_data.template.name }}
+            </span>
             <button class="btn btn-outline" id="editToggle">
                 <i class="fas fa-edit"></i> Edit Text
             </button>
@@ -37,7 +98,18 @@
                     <p class="invoice-details"><strong>Date:</strong> {{ invoice_data.date }}</p>
                 </div>
                 <div class="company-info">
-                    <h2 class="company-name">{{ user_profile.company_name }}</h2>
+                    <!-- Company Logo Section -->
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; justify-content: flex-end;">
+                        {% if user_profile.logo %}
+                            <div class="company-logo" style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 2px solid #e9ecef; background: white; padding: 5px;">
+                                <img src="{{ user_profile.logo.url }}" alt="{{ user_profile.company_name }} Logo" 
+                                     style="width: 100%; height: 100%; object-fit: contain;">
+                            </div>
+                        {% endif %}
+                        <div class="{% if user_profile.logo %}company-info-left{% else %}company-info-right{% endif %}">
+                            <h2 class="company-name">{{ user_profile.company_name }}</h2>
+                        </div>
+                    </div>
                     <p class="invoice-details">{{ user_profile.address|linebreaksbr }}</p>
                     <p class="invoice-details">Phone: {{ user_profile.phone }}</p>
                     <p class="invoice-details">Email: {{ user.email }}</p>
@@ -47,11 +119,14 @@
                     {% if user_profile.pan_number %}
                     <p class="invoice-details">PAN: {{ user_profile.pan_number }}</p>
                     {% endif %}
+                    {% if user_profile.website %}
+                    <p class="invoice-details">Website: {{ user_profile.website }}</p>
+                    {% endif %}
                 </div>
             </div>
             
             <!-- Bill To Section -->
-            <div class="bill-to-section">
+            <div class="bill-to-section" style="border-left: 4px solid var(--invoice-primary-color);">
                 <div>
                     <h3 class="bill-to-title">Bill To:</h3>
                     <p class="invoice-details client-name">{{ invoice_data.client_name }}</p>
@@ -92,15 +167,15 @@
                 <div class="amounts-container">
                     <div class="amount-row">
                         <span class="amount-label">Subtotal:</span>
-                        <span class="amount-value">{{ invoice_data.currency }}{{ invoice_data.subtotal }}</span>
+                        <span class="amount-value" id="subtotalDisplay">{{ invoice_data.currency }}{{ invoice_data.subtotal }}</span>
                     </div>
                     <div class="amount-row">
                         <span class="amount-label">Tax ({{ invoice_data.tax_rate }}%):</span>
-                        <span class="amount-value">{{ invoice_data.currency }}{{ invoice_data.tax_amount }}</span>
+                        <span class="amount-value" id="taxAmountDisplay">{{ invoice_data.currency }}{{ invoice_data.tax_amount }}</span>
                     </div>
                     <div class="total-row">
                         <span class="total-label">TOTAL:</span>
-                        <span class="total-value">{{ invoice_data.currency }}{{ invoice_data.total }}</span>
+                        <span class="total-value" id="totalDisplay">{{ invoice_data.currency }}{{ invoice_data.total }}</span>
                     </div>
                 </div>
             </div>
@@ -169,16 +244,18 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
     
     .preview-container {
-        background: white;
+        background: var(--card-bg);
         padding: 2rem;
         border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px var(--shadow-color);
         position: relative;
         min-height: 800px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--border-color);
     }
     
     .watermark-preview {
@@ -194,6 +271,10 @@
         text-align: center;
         font-weight: bold;
     }
+
+    [data-theme="dark"] .watermark-preview {
+        color: rgba(255,255,255,0.05);
+    }
     
     .invoice-content {
         position: relative;
@@ -205,38 +286,63 @@
         justify-content: space-between;
         margin-bottom: 2rem;
         padding-bottom: 1rem;
-        border-bottom: 3px solid #4361ee;
+        border-bottom: 3px solid rgba(255,255,255,0.3);
     }
     
     .invoice-title {
-        color: #4361ee;
+        color: white;
         margin-bottom: 0.5rem;
         font-size: 2.5rem;
         font-weight: bold;
+        border-bottom: 2px solid rgba(255,255,255,0.3);
+        padding-bottom: 0.5rem;
     }
     
     .invoice-details {
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
+        color: rgba(255,255,255,0.9);
     }
     
     .company-info {
         text-align: right;
     }
+
+    /* Conditional alignment classes to avoid inline templating inside style attributes */
+    .company-info-left {
+        text-align: left;
+    }
+
+    .company-info-right {
+        text-align: right;
+    }
     
     .company-name {
-        color: #3a0ca3;
+        color: white;
         margin-bottom: 0.5rem;
         font-size: 1.8rem;
         font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .company-logo {
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .company-logo:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     .bill-to-section {
         margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: var(--bg-color);
+        border-radius: 8px;
     }
     
     .bill-to-title {
-        color: #4361ee;
         margin-bottom: 1rem;
         font-size: 1.3rem;
         font-weight: bold;
@@ -245,6 +351,7 @@
     .client-name {
         font-weight: bold;
         font-size: 1.2rem;
+        color: var(--text-color);
     }
     
     .invoice-table {
@@ -252,21 +359,22 @@
         border-collapse: collapse;
         margin-bottom: 2rem;
         font-size: 1.1rem;
-    }
-    
-    .table-header {
-        background: #4361ee;
-        color: white;
+        background: var(--card-bg);
+        color: var(--text-color);
+        border-radius: 8px;
+        overflow: hidden;
     }
     
     .table-header th {
         padding: 1rem;
         font-weight: 600;
+        border: none;
     }
     
     .table-row td {
         padding: 1rem;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
     }
     
     .amounts-section {
@@ -277,6 +385,10 @@
     .amounts-container {
         width: 400px;
         font-size: 1.1rem;
+        background: var(--bg-color);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
     }
     
     .amount-row {
@@ -288,10 +400,12 @@
     
     .amount-label {
         font-weight: 500;
+        color: var(--text-color);
     }
     
     .amount-value {
         font-weight: 500;
+        color: var(--text-color);
     }
     
     .total-row {
@@ -299,29 +413,28 @@
         justify-content: space-between;
         font-weight: bold;
         font-size: 1.3rem;
-        border-top: 3px solid #3a0ca3;
         padding-top: 1rem;
         margin-top: 1rem;
     }
     
     .total-label {
         font-weight: bold;
+        color: var(--text-color);
     }
     
     .total-value {
         font-weight: bold;
+        color: var(--text-color);
     }
     
     .notes-section {
         margin-top: 3rem;
         padding: 1.5rem;
-        background: #f8f9fa;
+        background: var(--bg-color);
         border-radius: 8px;
-        border-left: 4px solid #4361ee;
     }
     
     .notes-title {
-        color: #4361ee;
         margin-bottom: 1rem;
         font-size: 1.2rem;
         font-weight: bold;
@@ -330,18 +443,20 @@
     .notes-content {
         font-size: 1.1rem;
         line-height: 1.6;
+        color: var(--text-color);
     }
     
     .invoice-footer {
         margin-top: 4rem;
         padding-top: 2rem;
-        border-top: 2px solid #eee;
+        border-top: 2px solid var(--border-color);
         text-align: center;
-        color: #666;
+        color: var(--gray);
     }
     
     .footer-thanks {
         margin-top: 0.5rem;
+        color: var(--gray);
     }
     
     .action-buttons {
@@ -366,10 +481,112 @@
     .hindi-text {
         font-family: 'Arial Unicode MS', 'Nirmala UI', sans-serif;
     }
+
+    /* Edit Mode Styles */
+    :root {
+        --invoice-primary-color: {{ invoice_data.template.primary_color }};
+    }
+    .edit-mode {
+        border: 2px dashed var(--invoice-primary-color) !important;
+        outline: none;
+    }
+
+    .template-badge {
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Responsive Design for Preview */
+    @media (max-width: 768px) {
+        .preview-container {
+            padding: 1rem;
+            margin: 0.5rem;
+        }
+        
+        .invoice-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .company-info {
+            text-align: left;
+        }
+        
+        .company-logo {
+            width: 60px !important;
+            height: 60px !important;
+        }
+        
+        .company-name {
+            font-size: 1.5rem;
+        }
+        
+        .amounts-container {
+            width: 100%;
+        }
+        
+        .invoice-table {
+            font-size: 0.9rem;
+        }
+        
+        .invoice-table th,
+        .invoice-table td {
+            padding: 0.5rem;
+        }
+        
+        .action-buttons {
+            justify-content: center;
+        }
+        
+        .watermark-preview {
+            font-size: 40px;
+        }
+        
+        .preview-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .template-badge {
+            margin: 0.5rem 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .invoice-title {
+            font-size: 2rem;
+        }
+        
+        .company-name {
+            font-size: 1.5rem;
+        }
+        
+        .invoice-details {
+            font-size: 1rem;
+        }
+        
+        .company-logo {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            margin: 0.25rem 0;
+        }
+    }
 </style>
 
 <script>
-    // JavaScript functionality
     document.addEventListener('DOMContentLoaded', function() {
         const editToggle = document.getElementById('editToggle');
         const saveButton = document.getElementById('saveButton');
@@ -380,6 +597,9 @@
         
         let editMode = false;
         
+        // Calculate and update totals when page loads
+        calculateAndUpdateTotals();
+        
         // Edit Mode Toggle
         editToggle.addEventListener('click', function() {
             editMode = !editMode;
@@ -387,11 +607,16 @@
             if (editMode) {
                 editToggle.innerHTML = '<i class="fas fa-save"></i> Save Changes';
                 previewContainer.setAttribute('contenteditable', 'true');
-                previewContainer.style.border = '2px dashed #4361ee';
+                previewContainer.classList.add('edit-mode');
+                previewContainer.style.outline = 'none';
+                
+                // Add event listeners for real-time calculation in edit mode
+                addEditModeListeners();
             } else {
                 editToggle.innerHTML = '<i class="fas fa-edit"></i> Edit Text';
                 previewContainer.removeAttribute('contenteditable');
-                previewContainer.style.border = '1px solid #ddd';
+                previewContainer.classList.remove('edit-mode');
+                calculateAndUpdateTotals(); // Recalculate after editing
                 alert('Changes saved to preview!');
             }
         });
@@ -401,35 +626,9 @@
             document.querySelector('.save-form').submit();
         });
         
-        // Download PDF
+        // Download PDF with Animation
         downloadButton.addEventListener('click', function() {
-            document.getElementById('watermark').style.display = 'block';
-            
-            const element = document.getElementById('preview-container');
-            const options = {
-                margin: [10, 10, 10, 10],
-                filename: '{{ document_type }}_{{ invoice_data.invoice_number }}.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
-                    scale: 2,
-                    useCORS: true,
-                    logging: false
-                },
-                jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
-                    orientation: 'portrait' 
-                }
-            };
-            
-            html2pdf().set(options).from(element).save().then(() => {
-                document.getElementById('watermark').style.display = 'none';
-                alert('PDF downloaded successfully!');
-            }).catch(error => {
-                console.error('PDF generation error:', error);
-                alert('Error generating PDF. Please try again.');
-                document.getElementById('watermark').style.display = 'none';
-            });
+            startDownload();
         });
         
         // Email Button
@@ -442,12 +641,208 @@
             window.print();
         });
         
-        // Keyboard shortcut for download (Ctrl + D)
+        // Calculate and Update Totals Function
+        function calculateAndUpdateTotals() {
+            let subtotal = 0;
+            const currency = '{{ invoice_data.currency }}';
+            
+            // Calculate subtotal from all items
+            const tableRows = document.querySelectorAll('.invoice-table tbody tr');
+            tableRows.forEach(row => {
+                const quantityCell = row.querySelector('td:nth-child(2)');
+                const priceCell = row.querySelector('td:nth-child(3)');
+                
+                if (quantityCell && priceCell) {
+                    const quantity = parseFloat(quantityCell.textContent) || 0;
+                    // Remove currency symbol and convert to number
+                    const priceText = priceCell.textContent.replace(currency, '').trim();
+                    const price = parseFloat(priceText) || 0;
+                    const amount = quantity * price;
+                    
+                    subtotal += amount;
+                    
+                    // Update amount cell
+                    const amountCell = row.querySelector('td:nth-child(4)');
+                    if (amountCell) {
+                        amountCell.textContent = currency + amount.toFixed(2);
+                    }
+                }
+            });
+            
+            // Calculate tax and total
+            const taxRate = parseFloat('{{ invoice_data.tax_rate }}') || 0;
+            const taxAmount = subtotal * (taxRate / 100);
+            const total = subtotal + taxAmount;
+            
+            // Update display
+            document.getElementById('subtotalDisplay').textContent = currency + subtotal.toFixed(2);
+            document.getElementById('taxAmountDisplay').textContent = currency + taxAmount.toFixed(2);
+            document.getElementById('totalDisplay').textContent = currency + total.toFixed(2);
+            
+            // Update hidden form fields
+            updateHiddenFormFields(subtotal, taxAmount, total);
+        }
+        
+        // Update hidden form fields with calculated values
+        function updateHiddenFormFields(subtotal, taxAmount, total) {
+            const subtotalInput = document.querySelector('input[name="subtotal"]');
+            const taxAmountInput = document.querySelector('input[name="tax_amount"]');
+            const totalInput = document.querySelector('input[name="total"]');
+            
+            if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+            if (taxAmountInput) taxAmountInput.value = taxAmount.toFixed(2);
+            if (totalInput) totalInput.value = total.toFixed(2);
+        }
+        
+        // Add event listeners for real-time calculation in edit mode
+        function addEditModeListeners() {
+            const tableCells = document.querySelectorAll('.invoice-table td');
+            tableCells.forEach(cell => {
+                // Only add listeners to quantity and price cells
+                if (cell.cellIndex === 1 || cell.cellIndex === 2) {
+                    cell.addEventListener('input', function() {
+                        calculateAndUpdateTotals();
+                    });
+                }
+            });
+            
+            // Also recalculate when tax rate is edited
+            const taxElements = document.querySelectorAll('.amounts-section');
+            taxElements.forEach(element => {
+                element.addEventListener('input', function() {
+                    setTimeout(calculateAndUpdateTotals, 100);
+                });
+            });
+        }
+        
+        // Download Function with Animation
+        function startDownload() {
+            // Show loading state
+            downloadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+            downloadButton.disabled = true;
+            
+            setTimeout(() => {
+                downloadPDF();
+            }, 1000);
+        }
+        
+        function downloadPDF() {
+            const element = document.getElementById('preview-container');
+            const options = {
+                margin: [10, 10, 10, 10],
+                filename: '{{ document_type }}_{{ invoice_data.invoice_number }}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                }
+            };
+            
+            // Create and download PDF
+            html2pdf().set(options).from(element).save().then(() => {
+                // Reset button state
+                downloadButton.innerHTML = '<i class="fas fa-download"></i> Download PDF';
+                downloadButton.disabled = false;
+            }).catch(error => {
+                console.error('PDF generation error:', error);
+                alert('Error generating PDF. Please try again.');
+                downloadButton.innerHTML = '<i class="fas fa-download"></i> Download PDF';
+                downloadButton.disabled = false;
+            });
+        }
+
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
+            // Ctrl + D for download
             if (e.ctrlKey && e.key === 'd') {
                 e.preventDefault();
-                downloadButton.click();
+                startDownload();
             }
+            
+            // Ctrl + P for print
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+            
+            // Ctrl + E for edit mode
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                editToggle.click();
+            }
+            
+            // Ctrl + R for recalculate
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                calculateAndUpdateTotals();
+                alert('Totals recalculated!');
+            }
+        });
+
+        // Add some interactive effects
+        const invoiceElements = document.querySelectorAll('.invoice-table tr, .amounts-container, .notes-section');
+        invoiceElements.forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Add loading state to buttons
+        const buttons = document.querySelectorAll('.btn:not(#downloadButton)');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.id !== 'downloadButton' && !this.href) {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                    }, 2000);
+                }
+            });
+        });
+
+        // Manual recalculate button (hidden but accessible via keyboard)
+        function addRecalculateButton() {
+            const recalcBtn = document.createElement('button');
+            recalcBtn.innerHTML = '<i class="fas fa-calculator"></i>';
+            recalcBtn.className = 'btn btn-outline';
+            recalcBtn.style.position = 'fixed';
+            recalcBtn.style.bottom = '20px';
+            recalcBtn.style.right = '20px';
+            recalcBtn.style.zIndex = '1000';
+            recalcBtn.title = 'Recalculate Totals (Ctrl+R)';
+            recalcBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                calculateAndUpdateTotals();
+                alert('Totals recalculated!');
+            });
+            document.body.appendChild(recalcBtn);
+        }
+        
+        // Add the recalculate button
+        addRecalculateButton();
+        
+        // Template color debug (remove in production)
+        console.log('Template Data:', {
+            name: '{{ invoice_data.template.name }}',
+            primary: '{{ invoice_data.template.primary_color }}',
+            secondary: '{{ invoice_data.template.secondary_color }}',
+            background: '{{ invoice_data.template.background }}'
         });
     });
 </script>

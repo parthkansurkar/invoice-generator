@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - BillKar बिलकर{% endblock %}
+
+{% block content %}
+<div class="card fade-in" style="max-width: 400px; margin: 0 auto;">
+    <div class="card-header">
+        <h2 class="card-title">Verify OTP</h2>
+        <p style="color: #666; margin-top: 0.5rem;">OTP सत्यापित करें</p>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="alert alert-info">
+        <strong>Note:</strong> Check your console/terminal for the OTP. In production, this would be sent via email/SMS.
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="otp" class="form-label">Enter OTP</label>
+            <input type="text" class="form-control" id="otp" name="otp" required 
+                   placeholder="Enter 6-digit OTP" maxlength="6" pattern="[0-9]{6}">
+            <small class="form-text" style="color: #666;">
+                6-digit OTP sent to {{ email }}
+            </small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Verify OTP
+        </button>
+    </form>
+    
+    <p style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'forgot_password' %}">Resend OTP</a> | 
+        <a href="{% url 'login' %}">Back to Login</a>
+    </p>
+</div>
+{% endblock %}

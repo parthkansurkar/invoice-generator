@@ -8,7 +8,7 @@
         <h2 class="card-title">Complete Your Business Profile</h2>
         <p>Fill in your business details to start creating professional invoices with BillKar.</p>
     </div>
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'profile_setup' %}" enctype="multipart/form-data" id="profileForm">
         {% csrf_token %}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="form-group">
@@ -31,19 +31,84 @@
                 <label for="address" class="form-label">Business Address *</label>
                 <textarea class="form-control" id="address" name="address" rows="3" required>{{ user_profile.address }}</textarea>
             </div>
-            <div class="form-group">
+            
+            <!-- Logo Upload Section -->
+            <div class="form-group" style="grid-column: span 2;">
                 <label for="logo" class="form-label">Company Logo</label>
-                <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
-                {% if user_profile.logo %}
-                    <img src="{{ user_profile.logo.url }}" alt="Current Logo" style="max-width: 100px; margin-top: 10px;">
-                {% endif %}
+                <div style="display: flex; gap: 2rem; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <input type="file" class="form-control" id="logo" name="logo" accept="image/*" onchange="previewLogo(event)">
+                        <small class="form-text" style="color: #666;">
+                            Upload your company logo (PNG, JPG, JPEG). Max size: 2MB
+                        </small>
+                    </div>
+                    <div style="flex: 0 0 150px;">
+                        <div id="logoPreview" style="width: 150px; height: 150px; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f8f9fa;">
+                            {% if user_profile.logo %}
+                                <img src="{{ user_profile.logo.url }}" alt="Current Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            {% else %}
+                                <div style="text-align: center; color: #666;">
+                                    <i class="fas fa-building" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                    <div>No Logo</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
+            
             <div class="form-group">
                 <label for="website" class="form-label">Website</label>
-                <input type="url" class="form-control" id="website" name="website" value="{{ user_profile.website }}">
+                <input type="url" class="form-control" id="website" name="website" value="{{ user_profile.website }}" placeholder="https://example.com">
             </div>
         </div>
         <button type="submit" class="btn btn-primary">Save Profile & Continue to BillKar</button>
     </form>
 </div>
+
+<script>
+    function previewLogo(event) {
+        const input = event.target;
+        const preview = document.getElementById('logoPreview');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    // Add form validation
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const companyName = document.getElementById('company_name').value;
+        const panNumber = document.getElementById('pan_number').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+        
+        if (!companyName || !panNumber || !phone || !address) {
+            e.preventDefault();
+            alert('Please fill in all required fields marked with *.');
+        }
+    });
+</script>
+
+<style>
+    #logoPreview {
+        transition: all 0.3s ease;
+    }
+    
+    #logoPreview:hover {
+        border-color: var(--primary);
+        transform: scale(1.05);
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+    }
+</style>
 {% endblock %}

@@ -6,4 +6,5 @@ class InvoiceAppConfig(AppConfig):
     name = 'invoice_app'
     
     def ready(self):
-        import invoice_app.signals
+        # Don't import signals to avoid profile creation conflicts
+        pass

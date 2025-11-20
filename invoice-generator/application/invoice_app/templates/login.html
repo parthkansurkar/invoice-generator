@@ -5,31 +5,263 @@
 {% block content %}
 <div class="card fade-in" style="max-width: 400px; margin: 0 auto;">
     <div class="card-header">
-        <h2 class="card-title">Login to BillKar</h2>
+        <h2 class="card-title">Welcome Back</h2>
         <p style="color: #666; margin-top: 0.5rem;">बिलकर में लॉगिन करें</p>
     </div>
     
-    {% if form.errors %}
-    <div class="alert alert-error">
-        Your email and password didn't match. Please try again.
-    </div>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
     {% endif %}
     
-    <form method="POST">
+    <form method="POST" id="loginForm">
         {% csrf_token %}
+        
         <div class="form-group">
             <label for="username" class="form-label">Email Address</label>
-            <input type="text" class="form-control" id="username" name="username" required>
+            <input type="email" class="form-control" id="username" name="username" required 
+                   placeholder="Enter your email address">
         </div>
+        
         <div class="form-group">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
+            <input type="password" class="form-control" id="password" name="password" required 
+                   placeholder="Enter your password">
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Login to BillKar</button>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Login to BillKar
+        </button>
     </form>
     
-    <p style="text-align: center; margin-top: 1rem;">
-        Don't have an account? <a href="{% url 'register' %}">Sign up here</a>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'forgot_password' %}" style="color: var(--primary); text-decoration: none;">
+            <i class="fas fa-key"></i> Forgot Password?
+        </a>
+    </div>
+    
+    <div style="border-top: 1px solid #eee; margin: 1.5rem 0;"></div>
+    
+    <p style="text-align: center; margin-top: 1rem; color: #666;">
+        Don't have an account? 
+        <a href="{% url 'register' %}" style="color: var(--primary); font-weight: 600;">
+            Create BillKar Account
+        </a>
     </p>
+    
+    <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #666;">
+        <p>By logging in, you agree to our <a href="#" style="color: var(--primary);">Terms of Service</a> and <a href="#" style="color: var(--primary);">Privacy Policy</a></p>
+    </div>
 </div>
+
+<style>
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: #fff;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    
+    .form-control:hover {
+        border-color: #c8d1d9;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        padding: 0.875rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: white;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+    
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+    
+    .btn-primary:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+    }
+    
+    .alert-success {
+        color: #0f5132;
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+    }
+    
+    .alert-error, .alert-danger {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    
+    .alert-info {
+        color: #055160;
+        background-color: #cff4fc;
+        border-color: #b6effb;
+    }
+    
+    .alert-warning {
+        color: #664d03;
+        background-color: #fff3cd;
+        border-color: #ffecb5;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e1e5e9;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        padding: 2rem 2rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid #e1e5e9;
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    }
+    
+    .card-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    a {
+        transition: color 0.3s ease;
+    }
+    
+    a:hover {
+        color: var(--secondary);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        
+        // Auto-focus on username field
+        usernameInput.focus();
+        
+        // Add focus effects
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.borderColor = 'var(--primary)';
+                this.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.2)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+            });
+        });
+        
+        // Form submission loading state
+        loginForm.addEventListener('submit', function() {
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            loginBtn.disabled = true;
+        });
+        
+        // Enter key support
+        loginForm.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Input validation
+        function validateForm() {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            if (username && password) {
+                loginBtn.disabled = false;
+            } else {
+                loginBtn.disabled = true;
+            }
+        }
+        
+        usernameInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+        
+        // Initial validation
+        validateForm();
+        
+        // Add some visual feedback for password field
+        passwordInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                this.style.background = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%234361ee\" width=\"18px\" height=\"18px\"><path d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM15.1 8H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z\"/></svg>') no-repeat right 12px center";
+                this.style.backgroundSize = '18px';
+            } else {
+                this.style.background = '';
+            }
+        });
+    });
+</script>
 {% endblock %}
